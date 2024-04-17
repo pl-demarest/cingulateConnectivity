@@ -8,9 +8,7 @@ for t = 1:size(data,2)
 end
 
 for t = 1:size(data,2)
-
     phaseData(:,t) = angle(lpdata(:,t));
-
 
 end
 

@@ -7,8 +7,8 @@ Type      = 'bandpass';
 
 %fvtool(b0_A, a0_A)
 
-for channel = 1:size(signal,2)
-    bandPassedData(:,channel) = filtfilt(b0_A,a0_A,signal(:,channel));
+for channel = 1:size(signal,1)
+    bandPassedData(channel,:) = filtfilt(b0_A,a0_A,signal(channel,:));
 end
 
 end

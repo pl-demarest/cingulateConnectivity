@@ -4,8 +4,10 @@ addpath(genpath(cd))
 fileNameDir = 'data/preprocessed/';
 fileCohDir = 'data/coherence/';
 fileFeatures = 'data/waveformFeatures/';
-files = dir(fileNameDir);
-dataFiles = {files(41:end).name};
+files = dir(dataDirectory);
+filesidx = [files.isdir];
+files = files(~filesidx);
+dataFiles = {files.name};
 
 load("code/dependencies/cingulateID.mat") % anatomical IDs of cingulate cortex channels
 labelTable = readtable("code/dependencies/labelTable.txt"); % table containing all relevant info for anatomical atlas

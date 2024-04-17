@@ -8,7 +8,9 @@ mkdir(saveDirectory);
 
 %identify data
 files = dir(dataDirectory);
-dataFiles = {files(41:end).name};
+filesidx = [files.isdir];
+files = files(~filesidx);
+dataFiles = {files.name};
 
 for dat = 1:length(dataFiles)
 
@@ -20,7 +22,7 @@ if ~isfile(saveFile)
 
     load(dataFiles{dat});
 
-    toExtract = data.spesSmallLaplace;
+    toExtract = data.spesSmallLaplaceZScore;
     sr = data.samplingRate;
     clear data
 
