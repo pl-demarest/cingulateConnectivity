@@ -1,4 +1,5 @@
 function [zscoredData] = getZScore(input,baselineWindow)
+
 %input is struct with field dimensions chans x signal x trial
 %each field needs to be time locked to the same index- ie the baseline of
 %each field needs to be in the same index range

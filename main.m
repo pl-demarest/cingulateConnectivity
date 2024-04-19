@@ -4,6 +4,9 @@ addpath(genpath(cd))
 %specify directories
 dataDirectory = 'data/raw';
 saveDirectory = 'data/preprocessed/';
+saveHilbert = 'data/hilbert/';
+mkdir(saveDirectory);
+mkdir(saveHilbert);
 spesFolder = 'ElectricalStimulation_1HzStim/ECOG001/';
 
 %import dependencies
@@ -50,15 +53,16 @@ for file = 1:length(filesOut)
     stimulatedChannels = [stimTable.ch1(find(ismember(stimTable.file, currentFile))),stimTable.ch2(find(ismember(stimTable.file, currentFile)))];
 
     if ~isfile([saveDirectory currentSubject '_' currentFile '_' namesOut{file} '.mat'])
-    data = preprocessData([subjectDirectory spesFolder currentFile '.dat'], baseSig, EEGChannels, channelInspection, currentRegion, VERA, currentSubject, stimTable.currentAmplitude(find(ismember(stimTable.file, currentFile))), stimulatedChannels);
-    save([saveDirectory currentSubject '_' currentFile '_' namesOut{file} '.mat'],'data', '-v7.3')
-
+    [data, hilbert] = preprocessData([subjectDirectory spesFolder currentFile '.dat'], baseSig, EEGChannels, channelInspection, currentRegion, VERA, currentSubject, stimTable.currentAmplitude(find(ismember(stimTable.file, currentFile))), stimulatedChannels);
+    
+    save([saveDirectory currentSubject '_' currentFile '_' namesOut{file} '.mat'],'data', '-v7.3','-nocompression')
     clear data
+    save([saveHilbert 'hilbert_' currentSubject '_' currentFile '_' namesOut{file} '.mat'],'hilbert', '-v7.3','-nocompression')
+    clear hilbert
 
     end
 
 end
-
 
 preprocessTag = 'preprocessingComplete'
 writematrix(preprocessTag,[subjectDirectory 'preprocessComplete.txt'])

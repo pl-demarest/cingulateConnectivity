@@ -1,33 +1,42 @@
-function phase = getPhaseFeatures(input,samplingRate,baselineWindow,taskWindow)
+function phase = getPhaseFeatures(input,baselineWindow,taskWindow)
 
-%%
-% bandpass the data
-for t = 1:size(input,3)
-phase.delta(:,:,t) = bandPassData(input(:,:,t),1,3,4,samplingRate);%delta
-phase.theta(:,:,t) = bandPassData(input(:,:,t),4,7,4,samplingRate);%theta
-phase.alpha(:,:,t) = bandPassData(input(:,:,t),8,12,4,samplingRate);%alpha
-phase.beta(:,:,t) = bandPassData(input(:,:,t),13,25,4,samplingRate);%beta
-phase.lowGamma(:,:,t) = bandPassData(input(:,:,t),25,50,4,samplingRate);%lowGamama
-phase.broadbandGamma(:,:,t) = bandPassData(input(:,:,t),70,170,4,samplingRate);%highGamma
-phase.broadbandLF(:,:,t) = bandPassData(input(:,:,t),5,40,4,samplingRate);%broadband low frequency
-
-phase.deltaHilbert(:,:,t) = getHilbert(squeeze(phase.delta(:,:,t)));
-phase.thetaHilbert(:,:,t) = getHilbert(squeeze(phase.theta(:,:,t)));
-phase.alphaHilbert(:,:,t) = getHilbert(squeeze(phase.alpha(:,:,t)));
-phase.betaHilbert(:,:,t) = getHilbert(squeeze(phase.beta(:,:,t)));
-phase.lowGammaHilbert(:,:,t) = getHilbert(squeeze(phase.lowGamma(:,:,t)));
-phase.broadbandGammaHilbert(:,:,t) = getHilbert(squeeze(phase.broadbandGamma(:,:,t)));
-phase.broadbandLF(:,:,t) = getHilbert(squeeze(phase.broadbandLF(:,:,t)));
-end
 %% extract angle, magnitude, duration(using abrupt changes), and phase-locked angle/magnitude of each bandpass
+fns = fieldnames(input);
 
-for ch = 1:size(input,1)
+for ch = 1:size(input.delta,1)
+%extract normalized angle
+dA = mean(normalizeAngle(squeeze(input.delta(ch,:,:))),2);
+tA = mean(normalizeAngle(squeeze(input.theta(ch,:,:))),2);
+aA = mean(normalizeAngle(squeeze(input.alpha(ch,:,:))),2);
+bA = mean(normalizeAngle(squeeze(input.beta(ch,:,:))),2);
+lGA = mean(normalizeAngle(squeeze(input.lowGamma(ch,:,:))),2);
+bGA = mean(normalizeAngle(squeeze(input.broadbandGamma(ch,:,:))),2);
+bLFA = mean(normalizeAngle(squeeze(input.broadbandLF(ch,:,:))),2); %use this to characterize response duration
+% find the peak magnitude angle for each and return the phase/amplitude of
+% each
+dMag = mean(squeeze(abs(input.delta(ch,:,:))),2);
+tMag = mean(squeeze(abs(input.theta(ch,:,:))),2);
+aMag = mean(squeeze(abs(input.alpha(ch,:,:))),2);
+bMag = mean(squeeze(abs(input.beta(ch,:,:))),2);
+lGMag = mean(squeeze(abs(input.lowGamma(ch,:,:))),2);
+bGMag = mean(squeeze(abs(input.broadbandGamma(ch,:,:))),2);
+bLFMag = mean(squeeze(abs(input.broadbandLF(ch,:,:))),2);
+
+clear input
+%get magnitude and angle of the phase-locked angle. return the angle and
+%the magnitude
+dPeak = find(dMag == max(dMag(taskWindow)));
+tPeak = find(tMag == max(tMag(taskWindow)));
+aPeak = find(aMag == max(aMag(taskWindow)));
+bPeak = find(bMag == max(bMag(taskWindow)));
+lGPeak = find(lGMag == max(lGMag(taskWindow)));
+bGPeak = find(bGMag == max(bGMag(taskWindow)));
 
 
 
+bLFPeak = find(bLFMag == max(bLFMag(taskWindow)));
 
-
-
+ipt = findchangepts(bLFMAG,MaxNumChanges=2,Statistic="rms");
 
 
 end
