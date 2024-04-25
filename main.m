@@ -53,11 +53,12 @@ for file = 1:length(filesOut)
     stimulatedChannels = [stimTable.ch1(find(ismember(stimTable.file, currentFile))),stimTable.ch2(find(ismember(stimTable.file, currentFile)))];
 
     if ~isfile([saveDirectory currentSubject '_' currentFile '_' namesOut{file} '.mat'])
-    [data, hilbert] = preprocessData([subjectDirectory spesFolder currentFile '.dat'], baseSig, EEGChannels, channelInspection, currentRegion, VERA, currentSubject, stimTable.currentAmplitude(find(ismember(stimTable.file, currentFile))), stimulatedChannels);
+    [data, hilbertSeeg, hilbertEeg] = preprocessData([subjectDirectory spesFolder currentFile '.dat'], baseSig, EEGChannels, channelInspection, currentRegion, VERA, currentSubject, stimTable.currentAmplitude(find(ismember(stimTable.file, currentFile))), stimulatedChannels);
     
-    save([saveDirectory currentSubject '_' currentFile '_' namesOut{file} '.mat'],'data', '-v7.3','-nocompression')
+    save([saveDirectory currentSubject '_' currentFile '_' namesOut{file} '.mat'],'-struct','data')
     clear data
-    save([saveHilbert 'hilbert_' currentSubject '_' currentFile '_' namesOut{file} '.mat'],'hilbert', '-v7.3','-nocompression')
+    save([saveHilbert 'hilbertSEEG_' currentSubject '_' currentFile '_' namesOut{file} '.mat'],'-struct','hilbertSeeg')
+    save([saveHilbert 'hilbertEEG_' currentSubject '_' currentFile '_' namesOut{file} '.mat'],'-struct','hilbertEeg')
     clear hilbert
 
     end

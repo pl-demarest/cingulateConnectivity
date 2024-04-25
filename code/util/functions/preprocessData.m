@@ -1,4 +1,4 @@
-function [data, hilbertOut] = preprocessData(filepath, baseline, EEGChannels, channelInspection, channelID, VERA, subject, stimAmplitude, stimChannels)
+function [data, hilbertOutSPES, hilbertOutEEG] = preprocessData(filepath, baseline, EEGChannels, channelInspection, channelID, VERA, subject, stimAmplitude, stimChannels)
 
 %First add info fields to data struct
 data.subjectName = subject;
@@ -60,8 +60,8 @@ lpBase = getLowPassData(slBase,25,5,data.samplingRate);
 
 %bandpass data for downstream analysis, epoch the data after bandpassing,
 %to be saved in a separate file
-hilbertOut.spes = getAllBandpassedData(slSig,data.samplingRate,spesVec,{},.95,.95);
-hilbertOut.eeg = getAllBandpassedData(carSigEeg,data.samplingRate,spesVec,{},.95,.95);
+hilbertOutSPES = getAllBandpassedData(slSig,data.samplingRate,spesVec,{},.95,.95);
+hilbertOutEEG = getAllBandpassedData(carSigEeg,data.samplingRate,spesVec,{},.95,.95);
 
 % epoch data
 data.spesCAR = epochData(carSig,spesVec,{},.95,.95,data.samplingRate);
@@ -79,7 +79,7 @@ data.spesCARZScore = getZScore(data.spesCAR,baselineWindow);
 data.spesSmallLaplaceZScore = getZScore(data.spesSmallLaplace,baselineWindow);
 data.surfaceEEGZScore = getZScore(data.surfaceEEG,baselineWindow);
 data.lowPassSPESZScore = getZScore(data.lowPassSPES,baselineWindow);
-data.spesBroadbandGamma = getZScore(abs(hilbertOut.spes.broadbandGamma),baselineWindow);
+data.spesBroadbandGamma = getZScore(abs(hilbertOutSPES.broadbandGamma),baselineWindow);
 
 data.lowPassBaseline = lpBase;
 

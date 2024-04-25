@@ -21,16 +21,13 @@ for dat = 1:length(dataFiles)
 
 if ~isfile(savePhaseFile)
 
-    load([hilbertDirectory 'hilbert_' currentFile]);
+    runAnalysis = load([hilbertDirectory 'hilbertSEEG_' currentFile],'broadbandLF');
     
-    runAnalysis = hilbert.spes;
-    clear hilbert
-
-    load([dataDirectory currentFile]);
-    sr = data.samplinngRate;
-    baselineWindow = 1:.9*data.samplingRate;
-    taskWindow = .95*data.samplingRate:(.95*data.samplingRate + (0.95*data.samplingRate));
-    clear data
+    
+    load([dataDirectory currentFile],'samplingRate');
+    sr = samplingRate;
+    baselineWindow = 1:.9*sr;
+    taskWindow = .95*sr:(.95*sr + (0.95*sr));
     
     phaseStruct = getPhaseFeatures(runAnalysis,sr,baselineWindow,taskWindow);
 
