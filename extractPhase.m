@@ -29,9 +29,9 @@ if ~isfile(savePhaseFile)
     baselineWindow = 1:.9*sr;
     taskWindow = .95*sr:(.95*sr + (0.95*sr));
     
-    phaseStruct = getPhaseFeatures(runAnalysis,sr,baselineWindow,taskWindow);
+    phaseStruct = getPhaseFeatures(runAnalysis,sr,baselineWindow,taskWindow,3);
 
-    save(savePhaseFile,"phaseStruct",'-mat','-v7.3')
+    save(savePhaseFile,'-struct','phaseStruct')
 
     clear phaseStruct
 end

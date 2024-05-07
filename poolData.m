@@ -4,7 +4,9 @@ addpath(genpath(cd))
 fileNameDir = 'data/preprocessed/';
 fileCohDir = 'data/coherence/';
 fileFeatures = 'data/waveformFeatures/';
-files = dir(dataDirectory);
+filePhase = 'data/phase/';
+
+files = dir(fileNameDir);
 filesidx = [files.isdir];
 files = files(~filesidx);
 dataFiles = {files.name};
@@ -51,15 +53,26 @@ RMS = [];
 duration = [];
 n1ratio = [];
 
+angleChars = [];
+angleCharTime = [];
+angle = [];
+magnitude = [];
+responseStart = [];
+responseEnd = [];
+responseDuration = [];
+responseLatency = [];
+peakMagnitude = [];
+peakMagLatency = [];
 
 
 for f = 1:length(dataFiles)
 
 currentFile = dataFiles{f};
 
-load([fileNameDir currentFile]);
+data = load([fileNameDir currentFile]);
 load([fileCohDir 'distribution_' currentFile]);
-load([fileFeatures 'features_' currentFile])
+load([fileFeatures 'features_' currentFile]);
+phase = load([filePhase 'phase_' currentFile]);
 
 for i = 1:numel(data.stimulatedRegion)
     if isa(data.stimulatedRegion{i}, 'string')
@@ -80,7 +93,6 @@ var = [var, distributionStruct.variance];
 pval = [pval, distributionStruct.pVal];
 subject = [subject, repmat({data.subjectName},1,numChans)];
 stimRegions = [stimRegions, repmat({matchingStrings(1)},1,numChans)];
-
 
 fileName = [fileName, repmat({[fileNameDir currentFile]},1,numChans)];
 cohDistFileName = [cohDistFileName, repmat({[fileCohDir 'distribution_' currentFile]},1,numChans)];
@@ -117,6 +129,19 @@ RMS = [RMS, responseStruct.RMS];
 duration = [duration, responseStruct.responseDuration];
 n1ratio = [n1ratio,     responseStruct.n1PeakToBaseline];
 
+latencies = phase.magnitudeStart - 1900;
+
+angleChars = [angleChars, phase.angleCharacterization'];
+angleCharTime = [angleCharTime, phase.angleCharacterizationTime'];
+angle = [angle, phase.angle'];
+magnitude = [magnitude, phase.magnitude'];
+responseStart = [responseStart, phase.magnitudeStart];
+responseEnd = [responseEnd, phase.magnitudeStop];
+responseDuration = [responseDuration, phase.magnitudeDuration];
+responseLatency = [responseLatency, latencies];
+peakMagnitude = [peakMagnitude, phase.peakMagnitude];
+peakMagLatency = [peakMagLatency, phase.peakMagnitudeLatency];
+
 end
 
 pooledData.cohensD = cohD;
@@ -149,8 +174,18 @@ pooledData.n2Amplitude = n2Amplitude;
 pooledData.n2Latency = n2Latency;
 pooledData.n2Width = n2W;
 pooledData.n2Prominence = n2Prom;
-pooledData.responseDuration = duration;
+pooledData.responseDurationByPeak = duration;
 pooledData.RMS = RMS;
 pooledData.n1PeakToBaselineRatio = n1ratio;
+pooledData.angleCharacteristics = angleChars;
+pooledData.angleCharacteristicsTime = angleCharTime;
+pooledData.responseAngles = angle;
+pooledData.responseMagnitude = magnitude;
+pooledData.responseStartTime = responseStart;
+pooledData.responseEndTime = responseEnd;
+pooledData.responseDurationByAbruptChanges = responseDuration;
+pooledData.responseLatency = responseLatency;
+pooledData.responsePeakMagnitude = peakMagnitude;
+pooledData.responsePeakMagnitudeTime = peakMagLatency;
 
-save('data/pooledData.mat','pooledData','-mat','-v7.3')
+save('data/pooledData.mat','-struct','pooledData')

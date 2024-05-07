@@ -4,7 +4,7 @@ function [out] = normalizeAngle(angleIn)
 %use this to get the normalized angle by mazimizing similar angles thorugh
 %time and minimizing different angles through time across trials
 
-meanAngle = mean(angle(angleIn),2);
+meanAngle = nanmean(angle(angleIn),2);
 
 diff = angle(angleIn) - meanAngle;
 
