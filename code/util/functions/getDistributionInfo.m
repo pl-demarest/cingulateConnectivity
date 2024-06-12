@@ -12,6 +12,8 @@ baseline(isnan(baseline)) = [];
 distributionStruct.cohensD(ch) = computeCohenD(task,baseline,'paired');
 distributionStruct.variance(ch) = var(baseline) - var(task);
 distributionStruct.pVal(ch) = ranksum(task,baseline);
+distributionStruct.rhoTask(ch) = nanmean(task);
+distributionStruct.rhoBase(ch) = nanmean(baseline);
 
 end
 

@@ -41,7 +41,7 @@ for els = 1 : ELS
     Y = R * Y + ye;
     Z = R * Z + ze;
 
-    surfs{end+1}=surf(ax,X, Y, Z, ones(size(Z,1))*cmap_id,'FaceColor','flat','FaceLighting','none','CDataMapping', 'direct','LineStyle','none',varargin{:},'FaceAlpha',0.3);
+    surfs{end+1}=surf(ax,X, Y, Z, ones(size(Z,1))*cmap_id,'FaceColor','flat','FaceLighting','none','CDataMapping', 'direct','LineStyle','none',varargin{:},'FaceAlpha',0.7);
 end
     
   hold(ax,'off');

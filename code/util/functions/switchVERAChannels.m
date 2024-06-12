@@ -53,7 +53,7 @@ VERA.SecondaryLabel(shift) = VERA.SecondaryLabel(shift+1);
 end
 
 toCount = 1;
-for to = switchTo(1)-1:switchTo(end)
+for to = switchTo(1):switchTo(end)
 
 VERA.electrodeLabels((to)) = a(toCount);
 VERA.electrodeDefinition.Annotation((to)) = b(toCount);

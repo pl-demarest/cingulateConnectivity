@@ -20,13 +20,14 @@ for dat = 1:length(dataFiles)
 
 if ~isfile(saveFile)
 
-    load(dataFiles{dat});
+    data = load(dataFiles{dat});
 
     toExtract = data.spesSmallLaplaceZScore;
+    lowPass = data.lowPassSPESZScore;
     sr = data.samplingRate;
     clear data
 
-    responseStruct = getPeaks(toExtract,sr);
+    responseStruct = getPeaks(toExtract,sr,lowPass);
 
     save(saveFile,"responseStruct",'-mat','-v7.3')
 

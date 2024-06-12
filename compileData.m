@@ -94,3 +94,82 @@ end
 
 
 save('data/compiledData.mat','data','-mat','-v7.3')
+
+for i = 1:dataLength
+
+    responseStartIDX = pooledData.responseStartTime(i);
+    responseEndIDX = pooledData.responseEndTime(i);
+    currentStimChan = pooledData.stimulatedRegion{i};
+
+    
+    dataMat(i,1)= pooledData.pValue(i);
+    dataMat(i,2) = pooledData.cohensD(i);
+    dataMat(i,3) = pooledData.variance(i);
+
+    dataMat(i,4) = pooledData.responseLatency(i);
+    dataMat(i,5) = pooledData.responseStartTime(i);
+    dataMat(i,6) = pooledData.responseEndTime(i);
+    dataMat(i,7) = pooledData.responseDurationByAbruptChanges(i);
+    dataMat(i,8) = pooledData.responsePeakMagnitude(i);
+    dataMat(i,9) = pooledData.responsePeakMagnitudeTime(i);
+    dataMat(i,10) = pooledData.angleCharacteristics(1,i);
+    dataMat(i,11) = pooledData.angleCharacteristics(2,i);
+    dataMat(i,12) = pooledData.angleCharacteristics(3,i);
+    dataMat(i,13) = pooledData.angleCharacteristicsTime(1,i);
+    dataMat(i,14) = pooledData.angleCharacteristicsTime(2,i);
+    dataMat(i,15) = pooledData.angleCharacteristicsTime(3,i);
+    if ~isnan(responseStartIDX) || ~isnan(responseEndIDX)
+    dataMat(i,16) = pooledData.responseAngles(responseStartIDX, i);
+    dataMat(i,17) = pooledData.responseAngles(responseEndIDX, i);
+    else
+    dataMat(i,16) = nan;
+    dataMat(i,17) = nan;
+    end
+
+    dataMat(i,18) = pooledData.n1Amplitude(i);
+    dataMat(i,19) = pooledData.n1Latency(i);
+    dataMat(i,20) = pooledData.n1PeakNumber(i);
+    dataMat(i,21) = pooledData.n1PeakToBaselineRatio(i);
+    dataMat(i,22) = pooledData.n1Polarity(i);
+    dataMat(i,23) = pooledData.n1Prominence(i);
+    dataMat(i,24) = pooledData.n1Width(i);
+    dataMat(i,25) = pooledData.n2Amplitude(i);
+    dataMat(i,26) = pooledData.n2Latency(i);
+    dataMat(i,27) = pooledData.n2PeakNumber(i);
+    dataMat(i,28) = pooledData.n2Polarity(i);
+    dataMat(i,29) = pooledData.n2Prominence(i);
+    dataMat(i,30) = pooledData.n2Width(i);
+
+    %assign labels
+    if contains(currentStimChan,rightACC)
+    
+        dataMat(i,31) = 1;
+
+    elseif contains(currentStimChan, leftACC)
+
+        dataMat(i,31) = 2;
+
+    elseif contains(currentStimChan, rightMCC)
+
+        dataMat(i,31) = 3;
+
+    elseif contains(currentStimChan, leftMCC)
+
+        dataMat(i,31) = 4;
+
+    elseif contains(currentStimChan, rightPCC)
+
+        dataMat(i,31) = 5;
+
+    elseif contains(currentStimChan, leftPCC)
+
+        dataMat(i,31) = 6;
+
+    end
+    
+
+
+
+end
+
+save('data/compiledDataMatrix.mat','dataMat','-mat','-v7.3')

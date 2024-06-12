@@ -43,7 +43,7 @@ for subj = 1:length(subjects)
     %Use the channel inspection to adjust VERA struct (standardize channels between data file and VERA file), add anatomical IDs
     %to the stimTable, output names and order of the EEG channels.
     
-    [VERA, stimTable, EEGChannels, filesOut, namesOut] = processChannels(VERA, channelInspection, stimTable, baseParams.ChannelNames.Value, regionNames);
+    [VERA, stimTable, EEGChannels, filesOut, namesOut] = processChannels(VERA, channelInspection, stimTable, baseParams.ChannelNames.Value, regionNames, 6, 0.5);
     writetable(stimTable,[subjectDirectory 'stimulationTable.xlsx'])
 for file = 1:length(filesOut)
 

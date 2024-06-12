@@ -1,4 +1,4 @@
-function peaks = getPeaks(data,samplingRate)
+function peaks = getPeaks(data,samplingRate,lowPass)
 
 %using some set of methods, extract the low frequency waveform component
 %from CCEPs to make identification of peaks, latency, polarity, response
@@ -21,7 +21,7 @@ n2Window = dimensions(2)/2+(samplingRate*(0.06)):dimensions(2)/2+(samplingRate*(
 baselineWindow = 1:.9*samplingRate;
 
 for ch = 1:dimensions(1)
-
+    curLP = squeeze(lowPass(ch,:,:));
     curDat = squeeze(data(ch,:,:));
 
     meanTrace = nanmean(curDat,2);
@@ -49,7 +49,7 @@ for ch = 1:dimensions(1)
     %low frequency component
     
 
-    lowPassedData = mean(getLowPassData(curDat,20,4,samplingRate),2);
+    lowPassedData = mean(curLP,2);
     baseSTDN2 = std(lowPassedData(baselineWindow))*5;
     %n2 positive peaks
     [n2p, n2pl, n2pw,n2pp] = findpeaks(lowPassedData(n2Window),'MinPeakHeight',baseSTDN2,'Annotate','extents');

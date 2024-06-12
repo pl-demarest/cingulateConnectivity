@@ -21,6 +21,12 @@ stimulation = states.DC04;
 spesIndex = findStimulusOnset(stimulation, 4e4);%this threshold may need to be adjusted
 data.numTrials = length(spesIndex);
 
+if isempty(spesIndex)
+data.message = 'trigbox error';
+return
+
+end
+
 %identify EEG channels
 baselineEEG = baseline(:,channelInspection.eegElectrodes);
 spesEEG = sig(:,channelInspection.eegElectrodes);
@@ -39,6 +45,11 @@ clear baseline
 baseEegClean = getCleanData(baselineEEG,data.samplingRate,[],0);
 clear baselineEEG
 
+%check if first SPES occured too quickly
+if spesIndex(1) < 2000
+    spesIndex(1) = [];
+end
+
 sigClean = getCleanData(sig,data.samplingRate,spesIndex,15);
 clear sig
 spesEegClean = getCleanData(spesEEG,data.samplingRate,spesIndex,15);
@@ -55,8 +66,8 @@ carSigEeg = commonAverageData(getLowPassData(spesEegClean,30,5,data.samplingRate
 carBaseEegClean = commonAverageData(getLowPassData(baseEegClean,30,5,data.samplingRate));
 
 %lowpass data for visualization purposes- CCEPs are low freq component
-lpSig = getLowPassData(slSig,25,5,data.samplingRate);
-lpBase = getLowPassData(slBase,25,5,data.samplingRate);
+lpSig = getLowPassData(slSig,40,5,data.samplingRate);
+lpBase = getLowPassData(slBase,40,5,data.samplingRate);
 
 %bandpass data for downstream analysis, epoch the data after bandpassing,
 %to be saved in a separate file

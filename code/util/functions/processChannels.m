@@ -1,4 +1,4 @@
-function [VERA, stimTable, EEGChansOut, filesOut, namesOut] = processChannels(VERA, channelInspection, stimTable, ChannelNames, regionNames)
+function [VERA, stimTable, EEGChansOut, filesOut, namesOut] = processChannels(VERA, channelInspection, stimTable, ChannelNames, regionNames, stimAmp, stimFreq)
 
 %Input the current VERA struct, the channelInspection struct, the
 %stimTable, and the ChannelNames from the baseline parameter file. The
@@ -51,7 +51,7 @@ for ch = 1:length(chan1ToIndex)
     stimTable.ch1Number(ch) = chanelIndex1;
     stimTable.ch2Number(ch) = chanelIndex2;
 
-    if any(ismember(regionNames, channelID1)) || any(ismember(regionNames, channelID2))
+    if (any(ismember(regionNames, channelID1)) && (stimTable.currentAmplitude(ch) == stimAmp) && (stimTable.frequency(ch) == stimFreq)) || (any(ismember(regionNames, channelID2)) && (stimTable.currentAmplitude(ch) == stimAmp) && (stimTable.frequency(ch) == stimFreq))
         filesOut{cingulateCount} = stimTable.file{ch};
         if any(ismember(regionNames, channelID1)) && any(ismember(regionNames, channelID2))
             namesOut(cingulateCount) = channelID1;

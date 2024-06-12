@@ -16,7 +16,7 @@ dataFiles = {files.name};
 
 for dat = 1:length(dataFiles)
 
-    load(dataFiles{dat});
+    data = load(dataFiles{dat});
     saveCoherenceFile = [saveDirectory 'coherence_' dataFiles{dat}];
     saveDistributionFile = [saveDirectory 'distribution_' dataFiles{dat}];
 

@@ -4,7 +4,7 @@ clear all
 
 clear
 addpath(genpath(cd))
-load('data/pooledData.mat')
+pooledData = load('data/pooledData.mat');
 load("code/dependencies/cingulateID.mat") % anatomical IDs of cingulate cortex channels
 labelTable = readtable("code/dependencies/labelTable.txt"); % table containing all relevant info for anatomical atlas
 load("code/dependencies/SEEGClinical22ChanLoc_xyz.mat") % EEG Channel Info
