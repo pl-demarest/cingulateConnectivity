@@ -1,4 +1,4 @@
-function correlations = getUniqueCorrelations(Set1,Set2)
+function [correlations,lag] = getUniqueCorrelations(Set1,Set2,mode)
 
 % where set is observations x time
 
@@ -13,6 +13,10 @@ numSeries2 = size(Set2, 1);  % Initialize with NaNs to identify skipped calculat
 Set1(isnan(Set1)) = [];
 Set2(isnan(Set2)) = [];
 
+switch mode
+
+    case 'normal'
+
 count = 1;
 for i = 1:numSeries1
     for j = 1:numSeries2
@@ -20,12 +24,32 @@ for i = 1:numSeries1
             continue;  % Skip the current iteration
         else
             tempCorr = corr(Set1(i,:)', Set2(j,:)','Type','Spearman');
-            correlations(count) = tempCorr;
+            correlations(count) = tempCorr^2;
+            count = count+1;
+        end
+    end
+end
+lag = nan;
+
+    case 'cross'
+
+count = 1;
+for i = 1:numSeries1
+    for j = 1:numSeries2
+        if isequaln(Set1,Set2) && (i == j)  % Skip correlation of a series with itself if within the same set
+            continue;  % Skip the current iteration
+        else
+            [~, ~, maxCorr, maxLag] = spearmanCrossCorr(Set1(i,:)', Set2(j,:)',10);
+            correlations(count) = maxCorr;
+            lag(count) = maxLag;
             count = count+1;
         end
     end
 end
 
+
+
+end
 
 
 end

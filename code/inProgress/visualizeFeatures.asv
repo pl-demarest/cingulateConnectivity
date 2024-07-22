@@ -1,6 +1,6 @@
 clear
 addpath(genpath(cd))
-load('data/pooledData.mat')
+pooledData = load('data/pooledData.mat');
 load("code/dependencies/cingulateID.mat") % anatomical IDs of cingulate cortex channels
 labelTable = readtable("code/dependencies/labelTable.txt"); % table containing all relevant info for anatomical atlas
 load("code/dependencies/SEEGClinical22ChanLoc_xyz.mat") % EEG Channel Info
@@ -43,7 +43,7 @@ idx.rMCC = find(ismember(stimRegion,rightMCC));
 idx.lPCC = find(ismember(stimRegion,leftPCC));
 idx.rPCC = find(ismember(stimRegion,rightPCC));
 
-datIn = (pooledData.n1Amplitude(sigChannelsIDX)+.01*2000)/2000;
+datIn = pooledData.cohensD(sigChannelsIDX);
 datIn(datIn == 0) = nan;
 dataToPlot = groupData(datIn,idx);
 
@@ -112,10 +112,10 @@ plot([l groups(i)],[curMedian curMedian],'Linewidth',2,'Color',curColor)
 end
 
 set(gca,'linewidth',.75, 'FontSize',24,'FontName','Helvetica')
-ylabel('N1 Amplitude (z-score)')
+ylabel('Coherence (Rho)')
 box off
 
-saveas(gcf,'figures/coherence/violinN1Amplitude.png')
+saveas(gcf,'figures/coherence/violin.svgpbasicallys')
 
 %% run basic stats
 a = dataToPlot(:,1:2);

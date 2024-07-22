@@ -1,12 +1,13 @@
 clear
 addpath(genpath(cd))
-load('data/pooledData.mat')
+pooledData = load('data/pooledData.mat');
 load("code/dependencies/cingulateID.mat") % anatomical IDs of cingulate cortex channels
 labelTable = readtable("code/dependencies/labelTable.txt"); % table containing all relevant info for anatomical atlas
 load("code/dependencies/SEEGClinical22ChanLoc_xyz.mat") % EEG Channel Info
 load("code/dependencies/mniMRI.mat")
 regionIDX = find(ismember(labelTable.Var1,cingulateID));
 regionNames = {labelTable.Var2{regionIDX}}';
+set(0,'DefaultFigureRenderer','painters')
 %% Group data by region stimulated (ACC, MCC, PCC)
 rightACC = {'ctx_rh_G_and_S_cingul-Ant','wm_rh_G_and_S_cingul-Ant'};
 leftACC = {'ctx_lh_G_and_S_cingul-Ant','wm_lh_G_and_S_cingul-Ant'};
@@ -43,7 +44,7 @@ idx.rMCC = find(ismember(stimRegion,rightMCC));
 idx.lPCC = find(ismember(stimRegion,leftPCC));
 idx.rPCC = find(ismember(stimRegion,rightPCC));
 
-datIn = pooledData.n1Width(sigChannelsIDX)/2000;
+datIn = pooledData.cohensD(sigChannelsIDX);
 datIn(datIn == 0) = nan;
 dataToPlot = groupData(datIn,idx);
 
@@ -112,10 +113,10 @@ plot([l groups(i)],[curMedian curMedian],'Linewidth',2,'Color',curColor)
 end
 
 set(gca,'linewidth',.75, 'FontSize',24,'FontName','Helvetica')
-ylabel('N1 Width (s)')
+ylabel('Coherence (Rho)')
 box off
 
-saveas(gcf,'figures/coherence/violinN1Width.png')
+saveas(gcf,'figures/coherence/violin.svg')
 
 %% run basic stats
 a = dataToPlot(:,1:2);
@@ -125,6 +126,10 @@ p = dataToPlot(:,5:6);
 am = ranksum(a(:),m(:))
 ap = ranksum(a(:),p(:))
 mp = ranksum(m(:),p(:))
+
+aa = ranksum(dataToPlot(:,1),dataToPlot(:,2))
+mm = ranksum(dataToPlot(:,3),dataToPlot(:,4))
+pp = ranksum(dataToPlot(:,5),dataToPlot(:,6))
 %%
 
 dataToPlot = groupData(pooledData.variance(sigChannelsIDX),idx);

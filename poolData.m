@@ -21,6 +21,8 @@ eeglabels = {EEGChans.labels};
 cohD = [];
 var = [];
 pval = [];
+rhoTask = [];
+rhoBase = [];
 subject = [];
 electrodeLabel = [];
 electrodeName = [];
@@ -91,6 +93,8 @@ stimChans(data.stimulatedChannels) = 1;
 cohD = [cohD, distributionStruct.cohensD];
 var = [var, distributionStruct.variance];
 pval = [pval, distributionStruct.pVal];
+rhoTask = [rhoTask, distributionStruct.rhoTask];
+rhoBase = [rhoBase, distributionStruct.rhoBase];
 subject = [subject, repmat({data.subjectName},1,numChans)];
 stimRegions = [stimRegions, repmat({matchingStrings(1)},1,numChans)];
 
@@ -147,6 +151,8 @@ end
 pooledData.cohensD = cohD;
 pooledData.variance = var;
 pooledData.pValue = pval;
+pooledData.rhoCCEP = rhoTask;
+pooledData.rhoBase = rhoBase;
 pooledData.subjectID = subject;
 pooledData.channelNumber = chanNumber;
 pooledData.electrodeRegionLabel = electrodeLabel;

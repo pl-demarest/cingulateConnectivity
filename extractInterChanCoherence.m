@@ -1,7 +1,9 @@
 clear
 addpath(genpath(cd))
-load('data/pooledData.mat')
+load('data/pooledData.mat','electrodeCoordinates','CCEPs','electrodeRegionLabel','stimulatedChannels','stimulatedRegion')
 
+%%downsample CCEPs
+CCEPs = downsample(CCEPs,3);
 
 c.rightACC = {'ctx_rh_G_and_S_cingul-Ant','wm_rh_G_and_S_cingul-Ant'};
 c.leftACC = {'ctx_lh_G_and_S_cingul-Ant','wm_lh_G_and_S_cingul-Ant'};
@@ -25,96 +27,61 @@ uChans = unique(chans,"rows",'stable');
 sortedTable = regionSort(sortIdx,:);
 
 
-regions = sortedTable.Name;
+regions = [sortedTable.Name; sortedTable.Name];
+
+
+storeMeanTaskCorr = nan(length(regions),length(regions));
+storeMeanBaseCorr = nan(length(regions),length(regions));
+storeP = nan(length(regions),length(regions));
+storeCohensD = nan(length(regions),length(regions));
+storeBaseLag = nan(length(regions),length(regions));
+storeTaskLag = nan(length(regions),length(regions));
+storeBaseCor = cell(length(regions),length(regions));
+storeTaskCor = cell(length(regions),length(regions));
 
 %%
 conditions = fieldnames(c);
-baseWindow = [1:1900];
-taskWindow = [1920: 3320];
-
-for con = 1:length(conditions)
-
-curCondition = c.(conditions{con});
-
-curIDX = contains([stimulatedRegion{:}],curCondition);
-
-
+baseWindow = [1:627];
+taskWindow = [641: 1108];
 % left hemisphere
 lh = chans(:,1) < 0;
 % right hemisphere
 rh = chans(:,1) > 0;
 
+for con = 1:length(conditions)
+
+curCondition = c.(conditions{con});
+curIDX = contains([stimulatedRegion{:}],curCondition);
+disp(conditions{con})
+fprintf(1,'[.')
 for i = 1:length(regions)
 
     curRegion = regions(i);
     curRegionIDX = contains([electrodeRegionLabel{:}],curRegion);
+    if i <= (length(regions)/2)
     indexes = curRegionIDX & curIDX & ~stimulatedChannels & lh';
-
+    elseif i > (length(regions)/2)
+    indexes = curRegionIDX & curIDX & ~stimulatedChannels & rh';
+    end
     curDat = CCEPs(:,indexes)';
-
 
     %left hemisphere
-    for j = 1:length(regions)
+    for j = i:length(regions)
         curRegion2 = regions(j);
         curRegionIDX2 = contains([electrodeRegionLabel{:}],curRegion2);
+
+        if j <= (length(regions)/2)
         indexes2 = curRegionIDX2 & curIDX & ~stimulatedChannels & lh';
-        curDat2 = CCEPs(:,indexes2)';
-
-
-        if (isempty(curDat2) || isempty(curDat)) || ((size(curDat,1) <= 1) && (size(curDat2,1) <= 1))
-
-        storeMeanTaskCorr(i,j) = nan;
-        storeMeanBaseCorr(i,j) = nan;
-        storeP(i,j) = nan;
-        storeCohensD(i,j) = nan;
-
-        storeBaseCor{i,j} = {nan};
-        storeTaskCor{i,j} = {nan};
-
-
-        else
-        baseCorr = getUniqueCorrelations(curDat(:,baseWindow),curDat2(:,baseWindow));
-        taskCorr = getUniqueCorrelations(curDat(:,taskWindow),curDat2(:,taskWindow));
-
-        p = signrank(baseCorr,taskCorr);
-        Tmean = nanmean(taskCorr);
-        Bmean = nanmean(baseCorr);
-        effectSize = computeCohenD(taskCorr,baseCorr,'paired');
-
-        storeMeanTaskCorr(i,j) = Tmean;
-        storeMeanBaseCorr(i,j) = Bmean;
-        storeP(i,j) = p;
-        storeCohensD(i,j) = effectSize;
-        
-        
-        storeBaseCor{i,j} = baseCorr;
-        storeTaskCor{i,j} = taskCorr;
-
-        end
-    end
-
-    countj = 1;
-    for j = length(regions)+1:2*length(regions)
-        curRegion2 = regions(countj);
-        curRegionIDX2 = contains([electrodeRegionLabel{:}],curRegion2);
+        elseif j > (length(regions)/2)
         indexes2 = curRegionIDX2 & curIDX & ~stimulatedChannels & rh';
+        end
         curDat2 = CCEPs(:,indexes2)';
 
 
-        if (isempty(curDat2) || isempty(curDat)) || ((size(curDat,1) <= 1) && (size(curDat2,1) <= 1))
+        if ~((isempty(curDat2) || isempty(curDat)) || ((size(curDat,1) <= 1) && (size(curDat2,1) <= 1)))
 
-        storeMeanTaskCorr(i,j) = nan;
-        storeMeanBaseCorr(i,j) = nan;
-        storeP(i,j) = nan;
-        storeCohensD(i,j) = nan;
-
-        storeBaseCor{i,j} = {nan};
-        storeTaskCor{i,j} = {nan};
-
-
-        else
-        baseCorr = getUniqueCorrelations(curDat(:,baseWindow),curDat2(:,baseWindow));
-        taskCorr = getUniqueCorrelations(curDat(:,taskWindow),curDat2(:,taskWindow));
+        [baseCorr, baseLag] = getUniqueCorrelations(curDat(:,baseWindow),curDat2(:,baseWindow),'cross');
+        [taskCorr, taskLag] = getUniqueCorrelations(curDat(:,taskWindow),curDat2(:,taskWindow),'cross');
 
         p = signrank(baseCorr,taskCorr);
         Tmean = nanmean(taskCorr);
@@ -125,121 +92,31 @@ for i = 1:length(regions)
         storeMeanBaseCorr(i,j) = Bmean;
         storeP(i,j) = p;
         storeCohensD(i,j) = effectSize;
-        
+        storeBaseLag(i,j) = nanmean(baseLag);
+        storeTaskLag(i,j) = nanmean(taskLag);
         
         storeBaseCor{i,j} = baseCorr;
         storeTaskCor{i,j} = taskCorr;
-
+            fprintf(1,'.');
+        
         end
 
-    countj = countj + 1;
     end
 
 end
 
-% right hemisphere
-rh = chans(:,1) > 0;
-counti = 1;
-for i = length(regions)+1:2*length(regions)
 
-    curRegion = regions(counti);
-    curRegionIDX = contains([electrodeRegionLabel{:}],curRegion);
-    indexes = curRegionIDX & curIDX & ~stimulatedChannels & rh';
+fprintf(1,'] done\n');
 
-    curDat = CCEPs(:,indexes)';
-
-     for j = 1:length(regions)
-        curRegion2 = regions(j);
-        curRegionIDX2 = contains([electrodeRegionLabel{:}],curRegion2);
-        indexes2 = curRegionIDX2 & curIDX & ~stimulatedChannels & lh';
-        curDat2 = CCEPs(:,indexes2)';
-
-
-        if (isempty(curDat2) || isempty(curDat)) || ((size(curDat,1) <= 1) && (size(curDat2,1) <= 1))
-
-        storeMeanTaskCorr(i,j) = nan;
-        storeMeanBaseCorr(i,j) = nan;
-        storeP(i,j) = nan;
-        storeCohensD(i,j) = nan;
-
-        storeBaseCor{i,j} = {nan};
-        storeTaskCor{i,j} = {nan};
-
-
-        else
-        baseCorr = getUniqueCorrelations(curDat(:,baseWindow),curDat2(:,baseWindow));
-        taskCorr = getUniqueCorrelations(curDat(:,taskWindow),curDat2(:,taskWindow));
-
-        p = signrank(baseCorr,taskCorr);
-        Tmean = nanmean(taskCorr);
-        Bmean = nanmean(baseCorr);
-        effectSize = computeCohenD(taskCorr,baseCorr,'paired');
-
-        storeMeanTaskCorr(i,j) = Tmean;
-        storeMeanBaseCorr(i,j) = Bmean;
-        storeP(i,j) = p;
-        storeCohensD(i,j) = effectSize;
-        
-        
-        storeBaseCor{i,j} = baseCorr;
-        storeTaskCor{i,j} = taskCorr;
-
-        end
-    end
-
-    countj = 1;
-    for j = length(regions)+1:2*length(regions)
-        curRegion2 = regions(countj);
-        curRegionIDX2 = contains([electrodeRegionLabel{:}],curRegion2);
-        indexes2 = curRegionIDX2 & curIDX & ~stimulatedChannels & rh';
-        curDat2 = CCEPs(:,indexes2)';
-
-
-        if (isempty(curDat2) || isempty(curDat)) || ((size(curDat,1) <= 1) && (size(curDat2,1) <= 1))
-
-        storeMeanTaskCorr(i,j) = nan;
-        storeMeanBaseCorr(i,j) = nan;
-        storeP(i,j) = nan;
-        storeCohensD(i,j) = nan;
-
-        storeBaseCor{i,j} = {nan};
-        storeTaskCor{i,j} = {nan};
-
-
-        else
-        baseCorr = getUniqueCorrelations(curDat(:,baseWindow),curDat2(:,baseWindow));
-        taskCorr = getUniqueCorrelations(curDat(:,taskWindow),curDat2(:,taskWindow));
-
-        p = signrank(baseCorr,taskCorr);
-        Tmean = nanmean(taskCorr);
-        Bmean = nanmean(baseCorr);
-        effectSize = computeCohenD(taskCorr,baseCorr,'paired');
-
-        storeMeanTaskCorr(i,j) = Tmean;
-        storeMeanBaseCorr(i,j) = Bmean;
-        storeP(i,j) = p;
-        storeCohensD(i,j) = effectSize;
-        
-        
-        storeBaseCor{i,j} = baseCorr;
-        storeTaskCor{i,j} = taskCorr;
-
-        end
-
-    countj = countj + 1;
-    end
-    
-counti = counti + 1;
-
-end
-
-interChannelCoherence.(conditions{con}).TaskCoherence = storeMeanTaskCorr;
-interChannelCoherence.(conditions{con}).BaselineCoherence = storeMeanBaseCorr;
+interChannelCoherence.(conditions{con}).taskCoherence = storeMeanTaskCorr;
+interChannelCoherence.(conditions{con}).baselineCoherence = storeMeanBaseCorr;
 interChannelCoherence.(conditions{con}).pValue = storeP;
 interChannelCoherence.(conditions{con}).cohensD = storeCohensD;
-interChannelCoherence.(conditions{con}).BaseCoherence = storeBaseCor;
-interChannelCoherence.(conditions{con}).CCEPCoherence = storeTaskCor;
+interChannelCoherence.(conditions{con}).baseCoherenceAll = storeBaseCor;
+interChannelCoherence.(conditions{con}).CCEPCoherenceAll = storeTaskCor;
 interChannelCoherence.(conditions{con}).labels = regions;
+interChannelCoherence.(conditions{con}).baseLag = storeBaseLag;
+interChannelCoherence.(conditions{con}).taskLag = storeTaskLag;
 
 end
 

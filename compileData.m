@@ -26,6 +26,9 @@ for i = 1:dataLength
     data(i).cohensD = pooledData.cohensD(i);
     data(i).variance = pooledData.variance(i);
 
+    data(i).rhoCCEP = pooledData.rhoCCEP(i);
+    data(i).rhoBase = pooledData.rhoBase(i);
+
     data(i).responseLatency = pooledData.responseLatency(i);
     data(i).responseStart = pooledData.responseStartTime(i);
     data(i).responseEnd = pooledData.responseEndTime(i);
@@ -59,6 +62,9 @@ for i = 1:dataLength
     data(i).n2Polarity = pooledData.n2Polarity(i);
     data(i).n2Prominence = pooledData.n2Prominence(i);
     data(i).n2Width = pooledData.n2Width(i);
+    data(i).xCoord = pooledData.electrodeCoordinates(1,i);
+    data(i).yCoord = pooledData.electrodeCoordinates(2,i);
+    data(i).zCoord = pooledData.electrodeCoordinates(3,i);
 
     %assign labels
     if contains(currentStimChan,rightACC)
@@ -106,64 +112,72 @@ for i = 1:dataLength
     dataMat(i,2) = pooledData.cohensD(i);
     dataMat(i,3) = pooledData.variance(i);
 
-    dataMat(i,4) = pooledData.responseLatency(i);
-    dataMat(i,5) = pooledData.responseStartTime(i);
-    dataMat(i,6) = pooledData.responseEndTime(i);
-    dataMat(i,7) = pooledData.responseDurationByAbruptChanges(i);
-    dataMat(i,8) = pooledData.responsePeakMagnitude(i);
-    dataMat(i,9) = pooledData.responsePeakMagnitudeTime(i);
-    dataMat(i,10) = pooledData.angleCharacteristics(1,i);
-    dataMat(i,11) = pooledData.angleCharacteristics(2,i);
-    dataMat(i,12) = pooledData.angleCharacteristics(3,i);
-    dataMat(i,13) = pooledData.angleCharacteristicsTime(1,i);
-    dataMat(i,14) = pooledData.angleCharacteristicsTime(2,i);
-    dataMat(i,15) = pooledData.angleCharacteristicsTime(3,i);
+    dataMat(i,4) = pooledData.rhoCCEP(i);
+    dataMat(i,5) = pooledData.rhoBase(i);
+
+
+    dataMat(i,6) = pooledData.responseLatency(i);
+    dataMat(i,7) = pooledData.responseStartTime(i);
+    dataMat(i,8) = pooledData.responseEndTime(i);
+    dataMat(i,9) = pooledData.responseDurationByAbruptChanges(i);
+    dataMat(i,10) = pooledData.responsePeakMagnitude(i);
+    dataMat(i,11) = pooledData.responsePeakMagnitudeTime(i);
+    dataMat(i,12) = pooledData.angleCharacteristics(1,i);
+    dataMat(i,13) = pooledData.angleCharacteristics(2,i);
+    dataMat(i,14) = pooledData.angleCharacteristics(3,i);
+    dataMat(i,15) = pooledData.angleCharacteristicsTime(1,i);
+    dataMat(i,16) = pooledData.angleCharacteristicsTime(2,i);
+    dataMat(i,17) = pooledData.angleCharacteristicsTime(3,i);
     if ~isnan(responseStartIDX) || ~isnan(responseEndIDX)
-    dataMat(i,16) = pooledData.responseAngles(responseStartIDX, i);
-    dataMat(i,17) = pooledData.responseAngles(responseEndIDX, i);
+    dataMat(i,18) = pooledData.responseAngles(responseStartIDX, i);
+    dataMat(i,19) = pooledData.responseAngles(responseEndIDX, i);
     else
-    dataMat(i,16) = nan;
-    dataMat(i,17) = nan;
+    dataMat(i,18) = nan;
+    dataMat(i,19) = nan;
     end
 
-    dataMat(i,18) = pooledData.n1Amplitude(i);
-    dataMat(i,19) = pooledData.n1Latency(i);
-    dataMat(i,20) = pooledData.n1PeakNumber(i);
-    dataMat(i,21) = pooledData.n1PeakToBaselineRatio(i);
-    dataMat(i,22) = pooledData.n1Polarity(i);
-    dataMat(i,23) = pooledData.n1Prominence(i);
-    dataMat(i,24) = pooledData.n1Width(i);
-    dataMat(i,25) = pooledData.n2Amplitude(i);
-    dataMat(i,26) = pooledData.n2Latency(i);
-    dataMat(i,27) = pooledData.n2PeakNumber(i);
-    dataMat(i,28) = pooledData.n2Polarity(i);
-    dataMat(i,29) = pooledData.n2Prominence(i);
-    dataMat(i,30) = pooledData.n2Width(i);
+    dataMat(i,20) = pooledData.n1Amplitude(i);
+    dataMat(i,21) = pooledData.n1Latency(i);
+    dataMat(i,22) = pooledData.n1PeakNumber(i);
+    dataMat(i,23) = pooledData.n1PeakToBaselineRatio(i);
+    dataMat(i,24) = pooledData.n1Polarity(i);
+    dataMat(i,25) = pooledData.n1Prominence(i);
+    dataMat(i,26) = pooledData.n1Width(i);
+    dataMat(i,27) = pooledData.n2Amplitude(i);
+    dataMat(i,28) = pooledData.n2Latency(i);
+    dataMat(i,29) = pooledData.n2PeakNumber(i);
+    dataMat(i,30) = pooledData.n2Polarity(i);
+    dataMat(i,31) = pooledData.n2Prominence(i);
+    dataMat(i,32) = pooledData.n2Width(i);
+
+    dataMat(i,33) = pooledData.electrodeCoordinates(1,i);
+    dataMat(i,34) = pooledData.electrodeCoordinates(2,i);
+    dataMat(i,35) = pooledData.electrodeCoordinates(3,i);
 
     %assign labels
     if contains(currentStimChan,rightACC)
     
-        dataMat(i,31) = 1;
+        dataMat(i,36) = 1;
 
     elseif contains(currentStimChan, leftACC)
 
-        dataMat(i,31) = 2;
+        dataMat(i,36) = 2;
 
     elseif contains(currentStimChan, rightMCC)
 
-        dataMat(i,31) = 3;
+        dataMat(i,36) = 3;
 
     elseif contains(currentStimChan, leftMCC)
 
-        dataMat(i,31) = 4;
+        dataMat(i,36) = 4;
 
     elseif contains(currentStimChan, rightPCC)
 
-        dataMat(i,31) = 5;
+        dataMat(i,36) = 5;
 
     elseif contains(currentStimChan, leftPCC)
 
-        dataMat(i,31) = 6;
+        dataMat(i,36) = 6;
 
     end
     

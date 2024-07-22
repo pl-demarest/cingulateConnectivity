@@ -305,8 +305,8 @@ for ch = 1:3
     set(gca,'LineWidth',0.75,'XColor','k','YColor','k')
 end
 
-saveas(gcf,[saveDir '_exemplarCCEPPCC_OFC.svg'])
-saveas(gcf,[saveDir '_exemplarCCEPPCC_OFC.png'])
+saveas(gcf,[saveDir '_exemplarCCEPACC_OFC.svg'])
+saveas(gcf,[saveDir '_exemplarCCEPACC_OFC.png'])
 
 %% plot exemplar CCEPs from Hippocampus
 
@@ -347,9 +347,6 @@ for ch = 1:3
     set(gca,'LineWidth',0.75,'XColor','k','YColor','k')
 end
 
-saveas(gcf,[saveDir '_exemplarCCEPACC_Hip.svg'])
-saveas(gcf,[saveDir '_exemplarCCEPACC_Hip.png'])
-
 figure('Position',[1441          44         231         899]);
 for ch = 1:3
 
@@ -370,9 +367,6 @@ for ch = 1:3
     set(gca,'LineWidth',0.75,'XColor','k','YColor','k')
 end
 
-saveas(gcf,[saveDir '_exemplarCCEPMCC_Hip.svg'])
-saveas(gcf,[saveDir '_exemplarCCEPMCC_Hip.png'])
-
 figure('Position',[1441          44         231         899]);
 for ch = 1:3
 
@@ -392,92 +386,3 @@ for ch = 1:3
     set(gca,'LineWidth',0.75,'XColor','k','YColor','k')
 end
 
-saveas(gcf,[saveDir '_exemplarCCEPPCC_Hip.svg'])
-saveas(gcf,[saveDir '_exemplarCCEPPCC_Hip.png'])
-
-%% plot exemplar CCEPs from Hippocampus
-
-length_samples = 3800;
-% Sampling rate
-fs = 2000; % Hz, samples per second
-% Create time vector
-timeVector = (0:length_samples-1) / fs;
-timeVector = (timeVector - max(timeVector)/2)*1000;
-
-currentRegion = regionOrdered(10);
-currentListIDX = contains(sortedTable.Class,currentRegion);
-currentList = sortedTable.Name(currentListIDX);
-findChannels = contains([pooledData.electrodeRegionLabel{:}],currentList);
-findACC = contains([pooledData.stimulatedRegion{:}],cingulateNamesSimple(1));
-findMCC = contains([pooledData.stimulatedRegion{:}],cingulateNamesSimple(2:3));
-findPCC = contains([pooledData.stimulatedRegion{:}],cingulateNamesSimple(4:5));
-findSignificant = pooledData.pValue < 0.0000001;
-indexA = find((findSignificant & findACC & findChannels) == 1);
-indexM = find((findSignificant & findMCC & findChannels) == 1);
-indexP = find((findSignificant & findPCC & findChannels) == 1);
-
-figure('Position',[1441          44         231         899]);
-for ch = 1:3
-
-    curA = pooledData.CCEPs(:,indexA(ch))';
-
-    subplot(3,1,ch)
-
-    plot(timeVector, curA,'Color',getColors('lush lilac'),'LineWidth',1);
-    hold on
-    plot([0 0], [-10 10],'--','color','k','linewidth',1) 
-    ylabel('z-score')
-    xlabel('Time (ms)')
-    ylim([-10 10])
-    xlim([-250 500])
-    box off
-    set(gca,'LineWidth',0.75,'XColor','k','YColor','k')
-end
-
-saveas(gcf,[saveDir '_exemplarCCEPACC_Ins.svg'])
-saveas(gcf,[saveDir '_exemplarCCEPACC_Ins.png'])
-
-figure('Position',[1441          44         231         899]);
-for ch = 1:3
-
-
-    curM = pooledData.CCEPs(:,indexM(ch))';
-
-
-    subplot(3,1,ch)
-
-    plot(timeVector, curM,'Color',getColors('celadon porcelain'),'LineWidth',1);
-    hold on
-    plot([0 0], [-10 10],'--','color','k','linewidth',1) 
-    ylabel('z-score')
-    xlabel('Time (ms)')
-    ylim([-10 10])
-    xlim([-250 500])
-    box off
-    set(gca,'LineWidth',0.75,'XColor','k','YColor','k')
-end
-
-saveas(gcf,[saveDir '_exemplarCCEPMCC_Ins.svg'])
-saveas(gcf,[saveDir '_exemplarCCEPMCC_Ins.png'])
-
-figure('Position',[1441          44         231         899]);
-for ch = 1:3
-
-
-    curP = pooledData.CCEPs(:,indexP(ch))';
-
-    subplot(3,1,ch)
-
-    plot(timeVector, curP,'Color',getColors('lago blue'),'LineWidth',1);
-    hold on
-    plot([0 0], [-10 10],'--','color','k','linewidth',1) 
-    ylabel('z-score')
-    xlabel('Time (ms)')
-    ylim([-10 10])
-    xlim([-250 500])
-    box off
-    set(gca,'LineWidth',0.75,'XColor','k','YColor','k')
-end
-
-saveas(gcf,[saveDir '_exemplarCCEPPCC_Ins.svg'])
-saveas(gcf,[saveDir '_exemplarCCEPPCC_Ins.png'])
