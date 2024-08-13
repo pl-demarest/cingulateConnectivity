@@ -28,7 +28,7 @@ for i = 1:dataLength
 
     data(i).rhoCCEP = pooledData.rhoCCEP(i);
     data(i).rhoBase = pooledData.rhoBase(i);
-
+    data(i).rms = pooledData.RMS(i);
     data(i).responseLatency = pooledData.responseLatency(i);
     data(i).responseStart = pooledData.responseStartTime(i);
     data(i).responseEnd = pooledData.responseEndTime(i);
@@ -62,6 +62,17 @@ for i = 1:dataLength
     data(i).n2Polarity = pooledData.n2Polarity(i);
     data(i).n2Prominence = pooledData.n2Prominence(i);
     data(i).n2Width = pooledData.n2Width(i);
+
+    data(i).gammaRho = pooledData.gammaRho(i);
+    data(i).gammaP = pooledData.gammaP(i);
+    data(i).gammaAmplitude = pooledData.gammaAmplitude(i);
+    data(i).gammaStart = pooledData.gammaStart(i);
+    data(i).gammaEnd = pooledData.gammaEnd(i);
+    data(i).gammaDuration = pooledData.gammaDuration(i);
+    data(i).gammaPeak = pooledData.gammaPeak(i);
+    data(i).gammaPeakLatency = pooledData.gammaPeakLatency(i);
+
+
     data(i).xCoord = pooledData.electrodeCoordinates(1,i);
     data(i).yCoord = pooledData.electrodeCoordinates(2,i);
     data(i).zCoord = pooledData.electrodeCoordinates(3,i);
@@ -114,70 +125,79 @@ for i = 1:dataLength
 
     dataMat(i,4) = pooledData.rhoCCEP(i);
     dataMat(i,5) = pooledData.rhoBase(i);
+    dataMat(i,6) = pooledData.RMS(i);
 
-
-    dataMat(i,6) = pooledData.responseLatency(i);
-    dataMat(i,7) = pooledData.responseStartTime(i);
-    dataMat(i,8) = pooledData.responseEndTime(i);
-    dataMat(i,9) = pooledData.responseDurationByAbruptChanges(i);
-    dataMat(i,10) = pooledData.responsePeakMagnitude(i);
-    dataMat(i,11) = pooledData.responsePeakMagnitudeTime(i);
-    dataMat(i,12) = pooledData.angleCharacteristics(1,i);
-    dataMat(i,13) = pooledData.angleCharacteristics(2,i);
-    dataMat(i,14) = pooledData.angleCharacteristics(3,i);
-    dataMat(i,15) = pooledData.angleCharacteristicsTime(1,i);
-    dataMat(i,16) = pooledData.angleCharacteristicsTime(2,i);
-    dataMat(i,17) = pooledData.angleCharacteristicsTime(3,i);
+    dataMat(i,7) = pooledData.responseLatency(i);
+    dataMat(i,8) = pooledData.responseStartTime(i);
+    dataMat(i,9) = pooledData.responseEndTime(i);
+    dataMat(i,10) = pooledData.responseDurationByAbruptChanges(i);
+    dataMat(i,11) = pooledData.responsePeakMagnitude(i);
+    dataMat(i,12) = pooledData.responsePeakMagnitudeTime(i);
+    dataMat(i,13) = pooledData.angleCharacteristics(1,i);
+    dataMat(i,14) = pooledData.angleCharacteristics(2,i);
+    dataMat(i,15) = pooledData.angleCharacteristics(3,i);
+    dataMat(i,16) = pooledData.angleCharacteristicsTime(1,i);
+    dataMat(i,17) = pooledData.angleCharacteristicsTime(2,i);
+    dataMat(i,18) = pooledData.angleCharacteristicsTime(3,i);
     if ~isnan(responseStartIDX) || ~isnan(responseEndIDX)
-    dataMat(i,18) = pooledData.responseAngles(responseStartIDX, i);
-    dataMat(i,19) = pooledData.responseAngles(responseEndIDX, i);
+    dataMat(i,19) = pooledData.responseAngles(responseStartIDX, i);
+    dataMat(i,20) = pooledData.responseAngles(responseEndIDX, i);
     else
-    dataMat(i,18) = nan;
     dataMat(i,19) = nan;
+    dataMat(i,20) = nan;
     end
 
-    dataMat(i,20) = pooledData.n1Amplitude(i);
-    dataMat(i,21) = pooledData.n1Latency(i);
-    dataMat(i,22) = pooledData.n1PeakNumber(i);
-    dataMat(i,23) = pooledData.n1PeakToBaselineRatio(i);
-    dataMat(i,24) = pooledData.n1Polarity(i);
-    dataMat(i,25) = pooledData.n1Prominence(i);
-    dataMat(i,26) = pooledData.n1Width(i);
-    dataMat(i,27) = pooledData.n2Amplitude(i);
-    dataMat(i,28) = pooledData.n2Latency(i);
-    dataMat(i,29) = pooledData.n2PeakNumber(i);
-    dataMat(i,30) = pooledData.n2Polarity(i);
-    dataMat(i,31) = pooledData.n2Prominence(i);
-    dataMat(i,32) = pooledData.n2Width(i);
+    dataMat(i,21) = pooledData.n1Amplitude(i);
+    dataMat(i,22) = pooledData.n1Latency(i);
+    dataMat(i,23) = pooledData.n1PeakNumber(i);
+    dataMat(i,24) = pooledData.n1PeakToBaselineRatio(i);
+    dataMat(i,25) = pooledData.n1Polarity(i);
+    dataMat(i,26) = pooledData.n1Prominence(i);
+    dataMat(i,27) = pooledData.n1Width(i);
+    dataMat(i,28) = pooledData.n2Amplitude(i);
+    dataMat(i,29) = pooledData.n2Latency(i);
+    dataMat(i,30) = pooledData.n2PeakNumber(i);
+    dataMat(i,31) = pooledData.n2Polarity(i);
+    dataMat(i,32) = pooledData.n2Prominence(i);
+    dataMat(i,33) = pooledData.n2Width(i);
 
-    dataMat(i,33) = pooledData.electrodeCoordinates(1,i);
-    dataMat(i,34) = pooledData.electrodeCoordinates(2,i);
-    dataMat(i,35) = pooledData.electrodeCoordinates(3,i);
+    dataMat(i,34) = pooledData.gammaRho(i);
+    dataMat(i,35) = pooledData.gammaP(i);
+    dataMat(i,36) = pooledData.gammaAmplitude(i);
+    dataMat(i,37) = pooledData.gammaStart(i);
+    dataMat(i,38) = pooledData.gammaEnd(i);
+    dataMat(i,39) = pooledData.gammaDuration(i);
+    dataMat(i,40) = pooledData.gammaPeak(i);
+    dataMat(i,41) = pooledData.gammaPeakLatency(i);
+
+    dataMat(i,42) = pooledData.electrodeCoordinates(1,i);
+    dataMat(i,43) = pooledData.electrodeCoordinates(2,i);
+    dataMat(i,44) = pooledData.electrodeCoordinates(3,i);
 
     %assign labels
     if contains(currentStimChan,rightACC)
     
-        dataMat(i,36) = 1;
+        dataMat(i,45) = 1;
 
     elseif contains(currentStimChan, leftACC)
 
-        dataMat(i,36) = 2;
+        dataMat(i,45) = 2;
 
     elseif contains(currentStimChan, rightMCC)
 
-        dataMat(i,36) = 3;
+        dataMat(i,45) = 3;
 
     elseif contains(currentStimChan, leftMCC)
 
-        dataMat(i,36) = 4;
+        dataMat(i,45) = 4;
 
     elseif contains(currentStimChan, rightPCC)
 
-        dataMat(i,36) = 5;
+        dataMat(i,45) = 5;
 
     elseif contains(currentStimChan, leftPCC)
 
-        dataMat(i,36) = 6;
+        dataMat(i,45) = 6;
 
     end
     

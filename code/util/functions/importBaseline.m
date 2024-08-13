@@ -14,6 +14,8 @@ elseif isfield(states,'StimulusCode')
     baselineIDX = find(states.StimulusCode == 0);
     signal = bs(baselineIDX,:);
     end
+else
+    signal = bs;
 end
 
 end

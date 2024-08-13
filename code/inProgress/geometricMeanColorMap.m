@@ -3,8 +3,8 @@ vertices = [0 0; 1 0; 0.5 sqrt(3)/2];
 faces = [1 2 3];
 
 % Define colors at the vertices
-vertexColors = [getColors('lush lilac'); getColors('modern orange'); getColors('lago blue')]; % RGB colors at vertices
-
+%vertexColors = [getColors('lush lilac'); getColors('modern orange'); getColors('lago blue')]; % RGB colors at vertices
+vertexColors = [1,0,0;0,1,0;0,0,1];
 % Create a figure
 figure;
 subplot(1, 2, 1);
@@ -20,7 +20,7 @@ colorbar;
 hold off;
 
 % Example data
-values = [100, 100, 100];
+values = [50, 100, 100];
 
 % Compute the geometric mean
 geoMean = nthroot(prod(values), 3);

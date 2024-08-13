@@ -3,6 +3,7 @@ addpath(genpath(cd))
 
 fileNameDir = 'data/preprocessed/';
 fileCohDir = 'data/coherence/';
+fileGammaDir = 'data/gamma/';
 fileFeatures = 'data/waveformFeatures/';
 filePhase = 'data/phase/';
 
@@ -51,7 +52,6 @@ n2Amplitude = [];
 n2Latency = [];
 n2W = [];
 n2Prom = [];
-RMS = [];
 duration = [];
 n1ratio = [];
 
@@ -66,6 +66,17 @@ responseLatency = [];
 peakMagnitude = [];
 peakMagLatency = [];
 
+meanGamma = [];
+stdGamma = [];
+gammaRho = [];
+gammaP = [];
+gammaAmplitude = [];
+gammaStart = [];
+gammaEnd = [];
+gammaDuration = [];
+gammaPeak = [];
+gammaPeakLatency = [];
+
 
 for f = 1:length(dataFiles)
 
@@ -75,6 +86,7 @@ data = load([fileNameDir currentFile]);
 load([fileCohDir 'distribution_' currentFile]);
 load([fileFeatures 'features_' currentFile]);
 phase = load([filePhase 'phase_' currentFile]);
+gamma = load([fileGammaDir 'gamma_' currentFile]);
 
 for i = 1:numel(data.stimulatedRegion)
     if isa(data.stimulatedRegion{i}, 'string')
@@ -129,7 +141,6 @@ n2Amplitude = [n2Amplitude, responseStruct.n2Amplitude];
 n2Latency = [n2Latency, responseStruct.n2Latency];
 n2W = [n2W, responseStruct.n2Width];
 n2Prom = [n2Prom, responseStruct.n2Prominence];
-RMS = [RMS, responseStruct.RMS];
 duration = [duration, responseStruct.responseDuration];
 n1ratio = [n1ratio,     responseStruct.n1PeakToBaseline];
 
@@ -145,6 +156,19 @@ responseDuration = [responseDuration, phase.magnitudeDuration];
 responseLatency = [responseLatency, latencies];
 peakMagnitude = [peakMagnitude, phase.peakMagnitude];
 peakMagLatency = [peakMagLatency, phase.peakMagnitudeLatency];
+
+
+meanGamma = [meanGamma, gamma.meanGamma'];
+stdGamma = [stdGamma, gamma.stdGamma'];
+gammaRho = [gammaRho, gamma.rho];
+gammaP = [gammaP, gamma.p];
+gammaAmplitude = [gammaAmplitude, gamma.amplitude];
+gammaStart = [gammaStart, gamma.responseStart];
+gammaEnd = [gammaEnd, gamma.responseStop];
+gammaDuration = [gammaDuration, gamma.responseDuration];
+gammaPeak = [gammaPeak, gamma.peakGamma];
+gammaPeakLatency = [gammaPeakLatency, gamma.peakGammaLatency];
+
 
 end
 
@@ -181,7 +205,7 @@ pooledData.n2Latency = n2Latency;
 pooledData.n2Width = n2W;
 pooledData.n2Prominence = n2Prom;
 pooledData.responseDurationByPeak = duration;
-pooledData.RMS = RMS;
+pooledData.RMS = rms(cceps(1920:3320,:));
 pooledData.n1PeakToBaselineRatio = n1ratio;
 pooledData.angleCharacteristics = angleChars;
 pooledData.angleCharacteristicsTime = angleCharTime;
@@ -193,5 +217,16 @@ pooledData.responseDurationByAbruptChanges = responseDuration;
 pooledData.responseLatency = responseLatency;
 pooledData.responsePeakMagnitude = peakMagnitude;
 pooledData.responsePeakMagnitudeTime = peakMagLatency;
+pooledData.gamma = meanGamma;
+pooledData.stdGamma = stdGamma;
+pooledData.gammaRho = gammaRho;
+pooledData.gammaP = gammaP;
+pooledData.gammaAmplitude = gammaAmplitude;
+pooledData.gammaStart = gammaStart;
+pooledData.gammaEnd = gammaEnd;
+pooledData.gammaDuration = gammaDuration;
+pooledData.gammaPeak = gammaPeak;
+pooledData.gammaPeakLatency = gammaPeakLatency;
+
 
 save('data/pooledData.mat','-struct','pooledData')

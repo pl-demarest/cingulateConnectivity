@@ -61,7 +61,4 @@ phase.peakMagnitudeLatency(ch) = responsePeakLatency;
 
 end
 
-
-
-
 end

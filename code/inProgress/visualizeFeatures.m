@@ -1,6 +1,7 @@
 clear
 addpath(genpath(cd))
 pooledData = load('data/pooledData.mat');
+load("data/compiledData.mat");
 load("code/dependencies/cingulateID.mat") % anatomical IDs of cingulate cortex channels
 labelTable = readtable("code/dependencies/labelTable.txt"); % table containing all relevant info for anatomical atlas
 load("code/dependencies/SEEGClinical22ChanLoc_xyz.mat") % EEG Channel Info
@@ -8,6 +9,21 @@ load("code/dependencies/mniMRI.mat")
 regionIDX = find(ismember(labelTable.Var1,cingulateID));
 regionNames = {labelTable.Var2{regionIDX}}';
 set(0,'DefaultFigureRenderer','painters')
+
+%% confirm the correlation between RMS and Cohen's D, to see if COhen's D can be used to contain info about response amplitude
+alphaThreshold = calculateAlphaThreshold([data.pValue], 0.0001);
+sigIDX = [data.pValue] < alphaThreshold;
+
+tempCCEP = rms(pooledData.CCEPs([1920:3320],:));
+
+x = [data(sigIDX).cohensD];
+y = [tempCCEP(sigIDX)];
+y(isnan(y)) = 0;
+
+figure;
+scatter(x,y)
+[r,p] = corr(x',y','Type','Pearson');
+
 %% Group data by region stimulated (ACC, MCC, PCC)
 rightACC = {'ctx_rh_G_and_S_cingul-Ant','wm_rh_G_and_S_cingul-Ant'};
 leftACC = {'ctx_lh_G_and_S_cingul-Ant','wm_lh_G_and_S_cingul-Ant'};
