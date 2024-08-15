@@ -22,11 +22,10 @@ cingulateNamesSimple = {'G_and_S_cingul-Ant'
 %What order should the regions be sorted by?
 regionOrdered = {'Orbitofrontal cortex','Frontal Lobe','Motor Cortex','Somatosensory Cortex','Operculum','Temporal Lobe','Hippocampus','Amygdala','Insula','Parietal Lobe','Occipital Lobe','Thalamus','White matter','Other'};
 
-colors =     [[162, 127, 184]./255;[68,200,149]./255;[34, 175, 194]./255]; % Different color for each class
+% Different color for each class-> one for each hemisphere
+colors =     [[162, 127, 184]./255;[68,200,149]./255;[34, 175, 194]./255]; 
 colors = [colors; flip(colors)];
-
 colormap = getColors('vivid greyscale');
-
 colormap = colormap(1:length(regionOrdered),:);
 %
 rightACC = {'ctx_rh_G_and_S_cingul-Ant','wm_rh_G_and_S_cingul-Ant'};
@@ -169,10 +168,8 @@ end
     
 
 end
-
     %concat and scale CohD and Var across entire dataset
     tempCohD= [storeCohDRight,flip(storeCohDLeft,2),storeGroupCoh];
-    
     %scale Coh D to 3 effect sizes
     for i = 1:size(tempCohD,1)
 
@@ -248,6 +245,75 @@ end
 end
 
 
+end
+
+%% convergent divergent circle
+
+
+hold on
+
+% Define convergence points for each inner group
+convergencePoints = zeros(2, length(inner));
+
+for i = 1:length(inner)
+    % Define the convergence point between the inner group and the outer circle
+    % This point should lie between the inner point and the center of the outer group
+    convergencePoints(1, i) = (inner(1, i) + mean(outer(1, :))) / 2;
+    convergencePoints(2, i) = (inner(2, i) + mean(outer(2, :))) / 2;
+end
+
+for i = 1:length(inner)
+    currentColor = colors(i,:);
+
+    % Draw a single line from the inner point to the convergence point
+    plot([inner(1,i), convergencePoints(1,i)], [inner(2,i), convergencePoints(2,i)], ...
+        '-', 'LineWidth', 2, 'Color', currentColor);
+    hold on;
+
+    for j = 1:length(outer)
+        if ~isnan(plotOuterCohD(i,j)) && ~isnan(plotOuterVar(i,j))
+            target_x = outer(1,j);
+            target_y = outer(2,j);
+
+            % Control points for the Bezier curve
+            control_x1 = (inner(1,i) + convergencePoints(1,i)) / 2;
+            control_y1 = (inner(2,i) + convergencePoints(2,i)) / 2;
+            control_x2 = (convergencePoints(1,i) + target_x) / 2;
+            control_y2 = (convergencePoints(2,i) + target_y) / 2;
+
+            t = linspace(0, 1, 100);
+            bezier_x = (1-t).^3 * inner(1,i) + 3 * (1-t).^2 .* t * control_x1 + ...
+                       3 * (1-t) .* t.^2 * control_x2 + t.^3 * target_x;
+            bezier_y = (1-t).^3 * inner(2,i) + 3 * (1-t).^2 .* t * control_y1 + ...
+                       3 * (1-t) .* t.^2 * control_y2 + t.^3 * target_y;
+
+            plot(bezier_x, bezier_y, '-', 'LineWidth', plotOuterCohD(i,j), ...
+                 'Color', [currentColor, plotOuterVar(i,j)]);
+            hold on;
+        end
+    end
+end
+
+hold on;
+
+% Draw the inner group connections as before
+for i = 1:length(inner)
+    currentColor = colors(i,:);
+
+    for j = 1:length(inner)
+        if i ~= j && ~isnan(plotInnerCohD(i,j)) && ~isnan(plotInnerVar(i,j))
+            xcoord = [inner(1,i), inner(1,j)];
+            ycoord = [inner(2,i), inner(2,j)];
+
+            plot(xcoord, ycoord, 'LineWidth', plotInnerCohD(i,j), ...
+                 'Color', [0.5, 0.5, 0.5, 0.2]); % Darken the lines between groups for visibility
+
+            plot(xcoord, ycoord, 'LineWidth', plotInnerCohD(i,j), ...
+                 'Color', [currentColor, plotInnerVar(i,j)]);
+
+            hold on;
+        end
+    end
 end
 
 

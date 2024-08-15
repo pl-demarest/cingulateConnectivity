@@ -1,3 +1,6 @@
+function [color, coordinate]
+
+
 % Define vertices of the triangle
 vertices = [0 0; 1 0; 0.5 sqrt(3)/2];
 faces = [1 2 3];
@@ -6,6 +9,7 @@ faces = [1 2 3];
 %vertexColors = [getColors('lush lilac'); getColors('modern orange'); getColors('lago blue')]; % RGB colors at vertices
 vertexColors = [1,0,0;0,1,0;0,0,1];
 % Create a figure
+if strcmp(figureFlag,'on')
 figure;
 subplot(1, 2, 1);
 hold on;
@@ -18,7 +22,7 @@ axis equal;
 % Add a colorbar for reference
 colorbar;
 hold off;
-
+end
 % Example data
 values = [50, 100, 100];
 
@@ -58,10 +62,3 @@ mappedColor(mappedColor > 1) = 1;
 fprintf('Geometric Mean: %.2f\n', geoMean);
 fprintf('Mapped Color: [%.2f, %.2f, %.2f]\n', mappedColor(1), mappedColor(2), mappedColor(3));
 
-% Plot a square with the mapped color for reference
-subplot(1, 2, 2);
-hold on;
-rectangle('Position', [0.25, 0.25, 0.5, 0.5], 'FaceColor', mappedColor, 'EdgeColor', 'k');
-axis off;
-title('Mapped Color Reference');
-hold off;

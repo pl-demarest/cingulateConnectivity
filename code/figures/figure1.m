@@ -1,18 +1,27 @@
-%% for  figure components of figure 1
+%% for  all figures in figure 1
+% Figure 1 will outline the methodology of the experiemntt, the coverage of
+% electrodes within the subject population, the area of stimulation across
+% the region of interest( cingulate cortex), and provide exemplar plots of
+% CCEPs
+
 clear all
 addpath(genpath(cd))
-%%
 load('data/pooledBrain.mat');
 pooledData = load('data/pooledData.mat');
-saveDir = 'figures/main/figure1/';
+saveDir = 'figures/main/figure1/dependencies/';
 mkdir(saveDir);
-%%
+%% Initialize Variables
+% identify datapoints of sitmulating channels
 stimIDX = pooledData.stimulatedChannels == 1;
+stimulatedChans = pooledData.electrodeCoordinates(:,stimIDX); 
 
-stimulatedChans = pooledData.electrodeCoordinates(:,stimIDX);
+% obtain all unique channels, as for the same subject, mulitiple channes
+% exist across multiple stimulation locations, only return a list of unique
+% channels across patient population
 uniqueChans = unique(pooledData.electrodeCoordinates','rows','stable');
 
-regionColors = [getColors('lush lilac');
+% view pooledBrain variable and select colors of each region
+regionColorsCC = [getColors('lush lilac');
     getColors('lago blue');
     getColors('celadon porcelain');
     getColors('celadon porcelain');
@@ -20,6 +29,8 @@ regionColors = [getColors('lush lilac');
     0.2,0.2,0.2;
     0.2,0.2,0.2];
 
+% view pooledBrain variable and select colors of electrodes within each
+% region
 electrodeColors = [1,0,0;
     1,0,0;
     1,0,0;
@@ -27,62 +38,73 @@ electrodeColors = [1,0,0;
     1,0,0;
     0,0,0];
 
+%initialize names of cingulate cortex for downstream indexing
 cingulateNamesSimple = {'G_and_S_cingul-Ant'
 'G_and_S_cingul-Mid-Ant'
 'G_and_S_cingul-Mid-Post'
 'G_cingul-Post-dorsal'
 'G_cingul-Post-ventral'};
 
+% identify channels within white matter 
 whiteMatterNames = {'unknown','CSF','Right-Cerebral-White-Matter','Left-Cerebral-White-Matter','Right-Lateral-Ventricle','Left-Lateral-Ventricle','Unknown','WM-hypointensities'};
 whiteMatterIDX = contains([pooledData.electrodeRegionLabel{:}],whiteMatterNames);
 whiteMatterChans = pooledData.electrodeCoordinates(:,whiteMatterIDX)';
 uniqueWMChans = unique(whiteMatterChans,'rows','stable');
 
+% identify channels in the cingulate cortex, and return a unique list of
+% channels in the cingulate cortex
 cingulateChansIDX = contains([pooledData.electrodeRegionLabel{:}],cingulateNamesSimple);
 cingulateChans = pooledData.electrodeCoordinates(:,cingulateChansIDX)';
 uniqueCingulateChans = unique(cingulateChans,'rows','stable');
 
+% identify and return all other channels
 greyMatterChans = pooledData.electrodeCoordinates(:,(~whiteMatterIDX & ~cingulateChansIDX))';
 uniqueGMChans = unique(greyMatterChans,'rows','stable');
 
+% create a new structure that only contains the cingulate regions 
 cingulateRegions.regions = rmfield(cortOut.regions,'otherRegions');
 
-%% plot only the cingulate subregions with electrodes from this area
-
-figure('Position',[281          32        3060        1260]);
-[CCsurface] = plotProjectedRegionsOnly(cingulateRegions,regionColors);
-for i = 1:length(CCsurface)
-CCsurface(i).FaceAlpha = 0.3;
-end
-
-hold on
-
-plotBallsOnVolume(gca,uniqueCingulateChans,[0,0,0],1.5)
-
-hold on
-
-plotBallsOnVolume(gca,stimulatedChans',[1,0,0],1.5)
-
-set(gca,'CameraViewAngleMode','Manual')
-axis equal
-
-zoom(1)
-view([180 0])%for anterior view
-saveas(gcf,[saveDir '_CCanterior.svg'])
-saveas(gcf,[saveDir '_CCanterior.png'])
-
-view([270,0])%for sagital
-saveas(gcf,[saveDir '_CCsagital.svg'])
-saveas(gcf,[saveDir '_CCsagital.png'])
-
-view([-180,90])%for under coronal
-saveas(gcf,[saveDir '_CCsuperior.svg'])
-saveas(gcf,[saveDir '_CCsuperior.png'])
-
-
-%% plot 3D models with electrode color corresponding to each region:
+% SOrt and initialize order of brain regions for color assignment
 regionSort = readtable('code/dependencies/regionCategories.xlsx');
 regionOrdered = {'Orbitofrontal cortex','Frontal Lobe','Cingulate cortex','Motor Cortex','Somatosensory Cortex','Operculum','Temporal Lobe','Hippocampus','Amygdala','Insula','Parietal Lobe','Occipital Lobe','Thalamus','White matter','Other'};
+
+%generate colors corresponding to each major brain region (colors selected
+%manually)
+chanColorsTemp = getColors('smartest');
+chanColors = [chanColorsTemp(1,:);
+    chanColorsTemp(11,:);
+    getColors('modern orange');
+    chanColorsTemp(4,:);
+    chanColorsTemp(4,:);
+    chanColorsTemp(5,:);
+    chanColorsTemp(6,:);
+    chanColorsTemp(7,:);
+    chanColorsTemp(8,:);
+    chanColorsTemp(9,:);
+    chanColorsTemp(10,:);
+    chanColorsTemp(10,:);
+    chanColorsTemp(12,:);
+    [0.2,0.2,0.2];
+    [0.2,0.2,0.2]];
+
+%generate colors of brain regions (in this case, cingulate is red, the rest
+%is light gray)
+regionColorsAll = [[.8,0,0.1];
+    [.8,0,0.1];
+    [.8,0,0.1];
+    [.8,0,0.1];
+    [.8,0,0.1];
+    0.2,0.2,0.2];
+
+
+%% FIGURE 1b%%
+
+% Consists of an average brain volume, and averaged cingulate cortex, and
+% all channels, each colored with a respective region from saggital, axial,
+% and superior views. Also contains a bar graph showing total number of
+% channels across all brain regions
+
+%% plot 3D models with electrode color corresponding to each region:
 
 % sort table by brain region
 [~,idx] = ismember(regionSort.Class, regionOrdered);
@@ -101,33 +123,8 @@ currentChannels = unique(pooledData.electrodeCoordinates(:,findChannels)','rows'
 e{i} = currentChannels;
 end
 
-chanColorsTemp = getColors('smartest');
-
-chanColors = [chanColorsTemp(1,:);
-    chanColorsTemp(11,:);
-    getColors('modern orange');
-    chanColorsTemp(4,:);
-    chanColorsTemp(4,:);
-    chanColorsTemp(5,:);
-    chanColorsTemp(6,:);
-    chanColorsTemp(7,:);
-    chanColorsTemp(8,:);
-    chanColorsTemp(9,:);
-    chanColorsTemp(10,:);
-    chanColorsTemp(10,:);
-    chanColorsTemp(12,:);
-    [0.2,0.2,0.2];
-    [0.2,0.2,0.2]];
-
-regionColors2 = [[.8,0,0.1];
-    [.8,0,0.1];
-    [.8,0,0.1];
-    [.8,0,0.1];
-    [.8,0,0.1];
-    0.2,0.2,0.2];
-
 figure('Position',[281          32        3060        1260]);
-[surface] = plotProjectedRegionsOnly(cortOut,regionColors2);
+[surface] = plotProjectedRegionsOnly(cortOut,regionColorsAll);
 for i = 1:length(surface)
 surface(i).FaceAlpha = 0.05;
 end
@@ -157,6 +154,8 @@ saveas(gcf,[saveDir '_superiorColors.png'])
 
 %% create bar graph with channel density
 regionOrdered = {'Orbitofrontal cortex','Frontal Lobe','Cingulate cortex','Somato-Motor Cortex','Operculum','Temporal Lobe','Hippocampus','Amygdala','Insula','Parietal Lobe','Occipital Lobe','Thalamus','White matter'};
+
+%pool motor and somatomotor regions
 for i = 1:length(e)
 tempL = size(e{i},1);
 if i == 4
@@ -185,7 +184,47 @@ end
 box off
 saveas(gcf,[saveDir '_channelCount.svg'])
 saveas(gcf,[saveDir '_channelCount.png'])
-%% get counts for number of stimulations at each subregion
+
+%% FIGURE 1c%%
+
+% Consists of an averaged cingulate cortex, with subregions colored, and
+% electrode density across this region. The electrodes are colored
+% depending on whether or not they were stimulated. The percentage of
+% data acquired from stimulating each subregion on the left and right side
+% is visualized using a stacked box plot.
+%% plot only the cingulate subregions with electrodes from this area
+
+figure('Position',[281          32        3060        1260]);
+[CCsurface] = plotProjectedRegionsOnly(cingulateRegions,regionColorsCC);
+for i = 1:length(CCsurface)
+CCsurface(i).FaceAlpha = 0.3; %change alpha of all generated surfaces
+end
+
+hold on
+
+plotBallsOnVolume(gca,uniqueCingulateChans,[0,0,0],1.5) %plot non stimulated channels in black
+
+hold on
+
+plotBallsOnVolume(gca,stimulatedChans',[1,0,0],1.5) %plot stimulated channels in red
+
+set(gca,'CameraViewAngleMode','Manual')
+axis equal
+
+zoom(1)
+view([180 0])%for anterior view
+saveas(gcf,[saveDir '_CCanterior.svg'])
+saveas(gcf,[saveDir '_CCanterior.png'])
+
+view([270,0])%for sagital
+saveas(gcf,[saveDir '_CCsagital.svg'])
+saveas(gcf,[saveDir '_CCsagital.png'])
+
+view([-180,90])%for under coronal
+saveas(gcf,[saveDir '_CCsuperior.svg'])
+saveas(gcf,[saveDir '_CCsuperior.png'])
+
+%% get counts for number of stimulations at each subregion and create a stacked barplot for the left and right cingulate
 
 stimConditions = unique([pooledData.stimulatedRegion{:}]);
 for i = 1:length(stimConditions)
@@ -395,7 +434,7 @@ end
 saveas(gcf,[saveDir '_exemplarCCEPPCC_Hip.svg'])
 saveas(gcf,[saveDir '_exemplarCCEPPCC_Hip.png'])
 
-%% plot exemplar CCEPs from Hippocampus
+%% plot exemplar CCEPs from Insula
 
 length_samples = 3800;
 % Sampling rate

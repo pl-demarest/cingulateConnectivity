@@ -31,6 +31,8 @@ for f = 1:length(regionFNS)
     set(ax,'XColor', 'none','YColor','none','ZColor','none')
     surf(f).FaceColor = c;
 
+    set(gca,'CameraViewAngleMode','Manual')
+
 end
 
 end
