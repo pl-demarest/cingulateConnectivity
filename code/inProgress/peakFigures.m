@@ -6,7 +6,7 @@ clear
 close all
 
 addpath(genpath(cd))
-load('data/pooledData.mat')
+pooledData = load('data/pooledData.mat')
 sigIDX = [];
 count = 0;
 
@@ -86,7 +86,7 @@ import = load(pooledData.dataFileName{sigIDX(14)});
 %
 import2 = load(pooledData.coherenceFileName{sigIDX(14)});
 %
-data = import.data.spesSmallLaplaceZScore;
+data = import.spesSmallLaplaceZScore;
 %
 cohB = import2.coherenceStruct.baseline;
 cohT = import2.coherenceStruct.task;
@@ -105,9 +105,6 @@ xlim([-.75 1])
 
 set(gca,'fontsize',18,'FontName','Helvetica','XColor','k','YColor','k','LineWidth',0.75)
 box off
-
-mkdir('figures/methods/coherenceMethods/exemplars')
-saveas(gcf,['figures/methods/coherenceMethods/distributionPCC.svg'])
 
 %% plot and save some exemplars
 exemplar = squeeze(data(channelNum,:,:));

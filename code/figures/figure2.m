@@ -1,22 +1,28 @@
 %% for  figure components of figure 2
-clear all
+clear
 addpath(genpath(cd))
+
+%add PEABrain to handle 3dd modeling
+addpath(genpath('/Volumes/Samsung_T5/PEABrain'));
 %
 pooledData = load('data/pooledData.mat');
 load('data/compiledData.mat');
 load('code/dependencies/templateBrain.mat');
 load('code/dependencies/listHip.mat');
 load('code/dependencies/listAmyg.mat');
+load('code/dependencies/cingulateNames.mat');
 
 hipAmyg = [listAmyg,listHip];
 
 regionSort = readtable('code/dependencies/regionCategories.xlsx');
-saveDir = 'figures/main/figure2/dependencies';
+saveDir = 'figures/main/figure2/dependencies/';
 mkdir(saveDir);
+% initialize variables
+leftHStim = contains([pooledData.stimulatedRegion{:}],'_lh_');
+rightHStim = contains([pooledData.stimulatedRegion{:}],'_rh_');
 
-%% initialize variables
-leftH = '_lh_';
-rightH = '_rh_';
+leftHRec = pooledData.electrodeCoordinates(1,:) < 0;
+rightHRec = pooledData.electrodeCoordinates(1,:) > 0;
 
 cingulateNamesSimple = {'G_and_S_cingul-Ant'
 'G_and_S_cingul-Mid-Ant'
@@ -25,9 +31,11 @@ cingulateNamesSimple = {'G_and_S_cingul-Ant'
 'G_cingul-Post-ventral'};
 
 % get logical array for significant responses
-alpha = calculateAlphaThreshold(pooledData.pValue, 0.05);
+alpha = calculateAlphaThreshold(pooledData.pValue, 0.01);
 
 significant = pooledData.pValue < alpha;
+
+stimulated = logical(pooledData.stimulatedChannels);
 
 %create logical arrays for the stimulation conditions
 condition.AStim = contains([pooledData.stimulatedRegion{:}],cingulateNamesSimple(1));
@@ -35,9 +43,150 @@ condition.MStim = contains([pooledData.stimulatedRegion{:}],cingulateNamesSimple
 condition.PStim = contains([pooledData.stimulatedRegion{:}],cingulateNamesSimple(4:5));
 
 brainFieldnames = fieldnames(templateBrain.regions);
+
+sigChannelsIDX = find(pooledData.pValue < alpha);
+stimRegion = [pooledData.stimulatedRegion{sigChannelsIDX}]; 
+
+%index groups for each subregion of the cingulate
+idx.lACC = find(ismember(stimRegion,leftACC));
+idx.rACC = find(ismember(stimRegion,rightACC));
+idx.lMCC = find(ismember(stimRegion,leftMCC));
+idx.rMCC = find(ismember(stimRegion,rightMCC));
+idx.lPCC = find(ismember(stimRegion,leftPCC));
+idx.rPCC = find(ismember(stimRegion,rightPCC));
+
+%initialize colors
+aColor = getColors('lush lilac');
+mColor = getColors('celadon porcelain');
+pColor = getColors('lago blue');
+
+%% Figure 2b-2c %%%%%%%
+%methods and exempar distributions of connectivity factor (cohen's D) note
+%that Figure 2a was generated manually using illustrator and a few exemplar
+%CCEPs plotted from pooledData.cceps
+
+%% This section of code generates the histogram plots in Figure 2. Each plot can be generated
+
+%first, generate a set of exemplars using the largest effect sizes:
+sigIDX = [];
+count = 0;
+while length(sigIDX) < 30
+count = count + 1;
+sigIDX = intersect(find(pooledData.pValue < 0.05/length(pooledData.pValue)), find(pooledData.cohensD > min(maxk(pooledData.cohensD,count)))); %find significant channels
+end
+% for exemplars, sigIDX used = 6 for ACC, 20 for MCC, 14 for PCC
+
+exemplarIDX = [1,6,20,14]; %these are exemplar indexes corresponding to:
+exemplarNames = {'Method','ACC','MCC','PCC'};
+exemplarColors = {'modern orange','lush lilac','celadon porcelain','lago blue'};
+
+for i = 1:length(exemplarIDX)
+
+testData = pooledData.CCEPs(:,sigIDX(exemplarIDX(i)));
+channelNum = pooledData.channelNumber(sigIDX(exemplarIDX(i)));
+import = load(pooledData.dataFileName{sigIDX(exemplarIDX(i))});
+%
+import2 = load(pooledData.coherenceFileName{sigIDX(exemplarIDX(i))});
+%
+data = import.spesSmallLaplaceZScore;
+%
+cohB = import2.coherenceStruct.baseline;
+cohT = import2.coherenceStruct.task;
+%
+figure('Position',[2346         575         740         601]);
+histogram(cohB(channelNum,:),25,'FaceColor','k','FaceAlpha',0.5,'BinWidth',0.025)
+hold on
+histogram(cohT(channelNum,:),25,'FaceColor',getColors(exemplarColors{i}),'FaceAlpha',0.7,'BinWidth',0.025)
+
+ylabel('Count')
+
+ylim([0 60])
+yticks([0,20,40,60])
+xlim([-.75 1])
+
+set(gca,'fontsize',18,'FontName','Helvetica','XColor','k','YColor','k','LineWidth',0.75)
+box off
+
+saveas(gcf,[saveDir exemplarNames{i} '_coherenceDistribution_.svg'])
+end
+
+
+%% FIGURE 2d %%%%%%%%%%%%%%%%
+%violin plots showing the distributions of data for coherence and for
+%variance. Note that these plot functions require the violinplot matlab
+%commmunity package downloaded from :https://github.com/bastibe/Violinplot-Matlab
+
+%% First visualize violin plots of coherence and 
+
+%format data for plotting functions
+datIn = pooledData.cohensD(sigChannelsIDX);
+datIn(datIn == 0) = nan;
+dataToPlot = groupData(datIn,idx);
+
+%for violinplot function
+colorsVP = [aColor;mColor;pColor];
+%for swamchart
+colorsVP2 = [aColor;aColor;mColor;mColor;pColor;pColor];
+%generate offset of violin plots
+offset = 0.05;
+groups = [1-offset,1+offset,2-offset,2+offset,3-offset,3+offset];
+medianLine = [];
+
+left = [1,3,5];
+right = [2,4,6];
+
+figure('position',[72   805   935   479])
+%first plot the left stimulation groups
+vp = violinplot(dataToPlot(:,left),groups(left),'ViolinColor',colorsVP,'ShowData',false,'HalfViolin','left','ShowMedian',false,'EdgeColor',[0,0,0],'ShowBox',false,'Width',0.3,'ViolinAlpha',0.2);
+hold on
+%nex tplot the right sitmulation groups
+vp2 = violinplot(dataToPlot(:,right),groups(right),'ViolinColor',colorsVP,'ShowData',false,'HalfViolin','right','ShowMedian',false,'EdgeColor',[0,0,0],'ShowBox',false,'Width',0.3,'ViolinAlpha',0.2);
+hold on
+
+%offset data and adjust appearance using object fields 
+for v = 1:length(vp2)
+vp(1,v).ViolinPlot.XData = vp(1,v).ViolinPlot.XData-offset;
+vp2(1,v).ViolinPlot.XData = vp2(1,v).ViolinPlot.XData+0.05;
+
+vp(1,v).ViolinPlot.EdgeAlpha = 0;
+vp2(1,v).ViolinPlot.EdgeAlpha = 0;
+
+vp(1,v).ShowWhiskers = 0;
+vp2(1,v).ShowWhiskers = 0;
+end
+for i = 1:length(groups)
+curColor = colorsVP2(i,:);
+curMedian = nanmean(dataToPlot(:,i));
+
+swarmchart(groups(i),dataToPlot(:,i)',[],curColor,'filled','MarkerFaceAlpha',0.3);
+hold on
+%Adjust placement of swarmcharts
+if rem(i,2) == 1
+    l = groups(i) - 0.1;
+else
+    l = groups(i) + 0.1;
+end
+plot([l groups(i)],[curMedian curMedian],'Linewidth',2,'Color',curColor)
+end
+
+xticklabels({'ACC','MCC','PCC'})
+
+set(gca,'linewidth',.75, 'FontSize',24,'FontName','Helvetica')
+ylabel('Coherence (Rho)')
+box off
+%% TODO %% ADD VARIANCE SECTION AND VALIDATION STATISTICS
+
+
+%% Figure 2e %%%%%%%%%
+%netowrk plot showing the wiring diagram of each subregion of the cingulate
+%cortex
+%% Figure 2f %%%%%%%%
+% 3d brain models of all regions that have known shared connectivity with
+% all 3 subregions, and their relative connectivity to each subregion
+
 %% color coding each region by relative and absolute connectivity-> for each region, store the color of the region
 
-%using COhen's D, generate a set of colors and triangular coordinates that
+%using Cohen's D, generate a set of colors and triangular coordinates that
 %correspond to the geometric mean of each region given the 3 above
 %conditions
 colors = [];
@@ -45,7 +194,6 @@ coordinates = [];
 numSubjects = [];
 includedRegion = logical([]);
 
-figure;
 for i = 1:length(templateBrain.regionList)
     %find all channels within the brain region
     curRegion = contains([pooledData.electrodeRegionLabel{:}],templateBrain.regionList{i});
@@ -56,51 +204,99 @@ for i = 1:length(templateBrain.regionList)
     %generate logical arrays for each condition, meeting significance,
     %within current region
     if ~any(curRegion)% check to see if any coverage exists (black if there is no color)
-    colors(i,:) = [0.2,0.2,0.2];
+    colors(i,:) = [0.8,0.8,0.8];
     coordinates(i,:) = [nan,nan]; 
     includedRegion(i) = 0;
-    else
-    tempACC = condition.AStim & curRegion & significant;
-    tempMCC = condition.MStim & curRegion & significant;
-    tempPCC = condition.PStim & curRegion & significant;
     end
-
+    tempACC = condition.AStim & curRegion & significant & ~stimulated;
+    tempMCC = condition.MStim & curRegion & significant & ~stimulated;
+    tempPCC = condition.PStim & curRegion & significant & ~stimulated;
 
     % check to make sure at least one value exists for each of the three
-    % above groups
-    if all([any(tempACC),any(tempMCC),any(tempPCC)])
+    % above groups, for other regions of the singulate check the other two
+    % regions, and ignore
+    if all([any(tempACC),any(tempMCC),any(tempPCC)]) && ~any(contains(cingulateNamesSimple,templateBrain.regionList{i}))
     % generate a triangular geometric mean to assign color
     a = nanmean(pooledData.cohensD(tempACC));
     m = nanmean(pooledData.cohensD(tempMCC));
     p = nanmean(pooledData.cohensD(tempPCC));
 
-    values = [a,m,p];
+        if any(contains(cingulateNamesSimple(1),templateBrain.regionList{i}))
+        a = 0;%  set self-connectivity to 0 in order to visualize relative connectivity of the other two sub-regions
+        elseif any(contains(cingulateNamesSimple(2:3),templateBrain.regionList{i}))
+        m = 0;%  set self-connectivity to 0 in order to visualize relative connectivity of the other two sub-regions
+        elseif any(contains(cingulateNamesSimple(4:5),templateBrain.regionList{i}))
+        p = 0;% set self-connectivity to 0 in order to visualize relative connectivity of the other two sub-regions
+        end
+        values = [a,m,p];
+        [colors(i,:),coordinates(i,:)] = triangularGeoMean(values,'off');
+        includedRegion(i) = 1;
 
-    [colors(i,:),coordinates(i,:)] = triangularGeoMean(values,'off');
-    includedRegion(i) = 1;
+    %condition where current region is ACC, MCC, or PCC, check if coverage
+    %exists for the other two regions
+    elseif any(contains(cingulateNamesSimple(1),templateBrain.regionList{i})) && all([any(tempMCC),any(tempPCC)])
+        a = 0;%  set self-connectivity to 0 in order to visualize relative connectivity of the other two sub-regions
+        m = nanmean(pooledData.cohensD(tempMCC));
+        p = nanmean(pooledData.cohensD(tempPCC));
+        values = [a,m,p];
+        [colors(i,:),coordinates(i,:)] = triangularGeoMean(values,'off');
+        includedRegion(i) = 1;
+    elseif any(contains(cingulateNamesSimple(2:3),templateBrain.regionList{i})) && all([any(tempACC),any(tempPCC)])
+        a = nanmean(pooledData.cohensD(tempACC));%  set self-connectivity to 0 in order to visualize relative connectivity of the other two sub-regions
+        m = 0;
+        p = nanmean(pooledData.cohensD(tempPCC));
+        values = [a,m,p];
+        [colors(i,:),coordinates(i,:)] = triangularGeoMean(values,'off');
+        includedRegion(i) = 1;
+    elseif any(contains(cingulateNamesSimple(4:5),templateBrain.regionList{i})) && all([any(tempACC),any(tempMCC)])
+        a = nanmean(pooledData.cohensD(tempACC));%  set self-connectivity to 0 in order to visualize relative connectivity of the other two sub-regions
+        m = nanmean(pooledData.cohensD(tempMCC));
+        p = 0;
+        values = [a,m,p];
+        [colors(i,:),coordinates(i,:)] = triangularGeoMean(values,'off');
+        includedRegion(i) = 1;
     else
     % assign white as the color
-    colors(i,:) = [0.2,0.2,0.2];
+    colors(i,:) = [0.8,0.8,0.8];
     coordinates(i,:) = [nan,nan];
     includedRegion(i) = 0;
     end
-
-
+    
 end
-colors(isnan(colors)) = 0.8;
+
 %plot figure using colors
-figure;
+figure('Position',[281          32        3060        1260]);
+templateBrainLeft = getOneSide(templateBrain,'left');
+% adjust model to remove parts from a midsection so that they do not appear
+% on the sagital figure
+templateBrainLeft = isolatePortionOfModel(templateBrainLeft,'x','less',-15);
+[surface] = plotProjectedRegionsOnly(templateBrainLeft,colors);
+view([270,0])
+
+figure('Position',[281          32        3060        1260]);
+%for using a right brain model, show the midsection and remove regions from
+%sagittal view
 templateBrainRight = getOneSide(templateBrain,'right');
+templateBrainRight = isolatePortionOfModel(templateBrainRight,'x','less',27);
 [surface] = plotProjectedRegionsOnly(templateBrainRight,colors);
+view([270,0])
 
-%change faceAlplha for all non-included regions to 0.02
-alphaIDX = find(includedRegion == 0);
-for i = alphaIDX
-surface(i).FaceColor = [0.8,0.8,0.8];
+%Get view of insula
+%get insula colors 
+insulaBool = contains(templateBrain.regionList,regionSort{strcmp(regionSort{:,3},'Insula'),1}); %extract insula fieldnames from table
+insulaColors = colors(insulaBool,:);
+insulaFieldnames = brainFieldnames(insulaBool); %ensure that fieldnames are ordered accordingly 
+%index insula subregions and generate an insula struct
+for i = 1:length(insulaFieldnames)
+   insulaTemplate.regions.(insulaFieldnames{i}) = templateBrain.regions.(insulaFieldnames{i});
 end
+insulaTemplateLeft = getOneSide(insulaTemplate,'left');
+figure('Position',[281          32        3060        1260]);
+[surfaceInsula] = plotProjectedRegionsOnly(insulaTemplateLeft,insulaColors);
+view([270,0])
 
-%% generate model of the hippocampus 
-hipAmygBool = contains(templateBrain.regionList,hipAmyg);
+% generate model of the hippocampus 
+hipAmygBool = contains(templateBrain.regionList,hipAmyg);%hip/amyg fieldnames already exist in a separate .mat file
 hipAmygFieldnames = brainFieldnames(hipAmygBool);
 hipAmygColors = colors(hipAmygBool,:);
 includedHA = includedRegion(hipAmygBool);
@@ -108,57 +304,273 @@ includedHA = includedRegion(hipAmygBool);
 %make new struct for hipp and amyg
 for i = 1:length(hipAmygFieldnames)
 
-    hipAmygTemplate.regions.(hipAmygFieldnames{i}) = templateBrainRight.regions.(hipAmygFieldnames{i});
+    hipAmygTemplate.regions.(hipAmygFieldnames{i}) = templateBrain.regions.(hipAmygFieldnames{i});
 
 end
-
-figure;
+hipAmygTemplate = getOneSide(hipAmygTemplate,'left');
+figure('Position',[281          32        3060        1260]);
 [surfaceHA] = plotProjectedRegionsOnly(hipAmygTemplate,hipAmygColors);
-
 alphaIDXHA = find(includedHA == 0);
 for i = alphaIDXHA
 surfaceHA(i).FaceColor = [0.8,0.8,0.8];
 surfaceHA(i).FaceAlpha = 0.5;
 end
+% generate color legend and pointset 
+figure('Position',[281          32        3060        1260]);
+% Define vertices of the triangle
+vertices = [0 0; 1 0; 0.5 1];
+faces = [1 2 3];
+vertexColors = getColors('damp rgb');
+hold on;
+% Plot the triangle with interpolated colors
+h = patch('Faces', faces, 'Vertices', vertices, 'FaceVertexCData', vertexColors, ...
+          'FaceColor', 'interp', 'EdgeColor', 'none');
+for i = 1:length(coordinates)
+hold on;
+plot(coordinates(i,1), coordinates(i,2), 'ko', 'MarkerFaceColor', 'k','MarkerSize',15);
+end
+axis equal
+axis off
 
-%%
 
-Sig = pooledData.pValue < (0.05/length(pooledData.pValue));
+%% Now repeat for supplemental brain maps-> these will require 3 colors and an alpha value
 
-aE = pooledData.electrodeCoordinates(:,(AStim & Sig))';
-mE = pooledData.electrodeCoordinates(:,(MStim & Sig))';
-pE = pooledData.electrodeCoordinates(:,(PStim & Sig))';
+%conditions
+effectSizes = [];
+effectVariation = [];
+numSubjects = [];
+includedRegion = logical([]);
 
-aRho = pooledData.cohensD((AStim & Sig));
-mRho = pooledData.cohensD((MStim & Sig));
-pRho = pooledData.cohensD((PStim & Sig));
+%normalize cohens D for each condition
 
-[nA, rA, aC] = electrodeEffectSizes(aRho,getColors('lush lilac black gradient'),1.5,4);
-[nM, rM, mC] = electrodeEffectSizes(mRho,getColors('celadon porcelain black gradient'),1.5,4);
-[nP, rP, pC] = electrodeEffectSizes(pRho,getColors('lago blue black gradient'),1.5,4);
+for i = 1:length(templateBrain.regionList)
+    %find all channels within the brain region
+    curRegion = contains([pooledData.electrodeRegionLabel{:}],templateBrain.regionList{i});
 
-%%
+    %check number of subjects with coverage in this region
+    numSubjects(i) = length(unique(pooledData.subjectID(curRegion)));
 
-regionColors2 = [[.8,0,0.1];
-    [.8,0,0.1];
-    [.8,0,0.1];
-    [.8,0,0.1];
-    [.8,0,0.1];
-    0.2,0.2,0.2];
+    %generate logical arrays for each condition, meeting significance,
+    %within current region
+
+    tempACC = condition.AStim & curRegion & significant & ~stimulated;
+    tempMCC = condition.MStim & curRegion & significant & ~stimulated;
+    tempPCC = condition.PStim & curRegion & significant & ~stimulated;
+
+    effectSizes(i,1) = nanmean(pooledData.cohensD(tempACC));
+    effectSizes(i,2) = nanmean(pooledData.cohensD(tempMCC));
+    effectSizes(i,3) = nanmean(pooledData.cohensD(tempPCC));
+
+    effectVariation(i,1) = nanstd(pooledData.cohensD(tempACC));
+    effectVariation(i,2) = nanstd(pooledData.cohensD(tempMCC));
+    effectVariation(i,3) = nanstd(pooledData.cohensD(tempPCC));
+
+        if any(contains(cingulateNamesSimple(1),templateBrain.regionList{i}))
+        effectSizes(i,1) = nan;%  set self-connectivity to 0 in order to visualize relative connectivity of the other two sub-regions
+        elseif any(contains(cingulateNamesSimple(2:3),templateBrain.regionList{i}))
+        effectSizes(i,2) = nan;%  set self-connectivity to 0 in order to visualize relative connectivity of the other two sub-regions
+        elseif any(contains(cingulateNamesSimple(4:5),templateBrain.regionList{i}))
+        effectSizes(i,3) = nan;% set self-connectivity to 0 in order to visualize relative connectivity of the other two sub-regions
+        end
+
+end
+
+%normalize each row so that maximum alpha can be assigned as between 0.2 and .7
+aAlphas = effectSizes(:,1);
+aNan = isnan(aAlphas); %store nan values to adjust to grey
+aAlphas(isnan(aAlphas)) = 0.8;
+[~,~,aColors] = electrodeEffectSizes(aAlphas,getColors('lush lilac gradient'),1.5,4);
+aColors(aNan,:) = 0.8;
+
+%First Plot everything for ACC
+figure('Position',[281          32        3060        1260]);
+[surface] = plotProjectedRegionsOnly(templateBrainLeft,aColors);
+view([270,0])
 
 figure('Position',[281          32        3060        1260]);
-[surface] = plotProjectedRegionsOnly(cortOut,regionColors2);
-for i = 1:length(surface)
-surface(i).FaceAlpha = 0.05;
+[surface] = plotProjectedRegionsOnly(templateBrainRight,aColors);
+view([270,0])
+
+figure('Position',[281          32        3060        1260]);
+insulaColors = aColors(insulaBool,:);
+[surfaceInsula] = plotProjectedRegionsOnly(insulaTemplateLeft,insulaColors);
+view([270,0])
+
+figure('Position',[281          32        3060        1260]);
+hipAmygColors = aColors(hipAmygBool,:);
+[surfaceHA] = plotProjectedRegionsOnly(hipAmygTemplate,hipAmygColors);
+view([-176.4 -90.0])
+
+figure('Position',[281          32        3060        1260]);
+hipAmygColors = aColors(hipAmygBool,:);
+[surfaceHA] = plotProjectedRegionsOnly(hipAmygTemplate,hipAmygColors);
+view([-180.8 73.9])
+
+%MCC
+mAlphas = effectSizes(:,2);
+mNan = isnan(mAlphas);
+mAlphas(isnan(mAlphas)) = 0.8;
+[~,~,mColors] = electrodeEffectSizes(mAlphas,getColors('celadon porcelain gradient'),1.5,4);
+mColors(mNan,:) = 0.8;
+
+figure('Position',[281          32        3060        1260]);
+[surface] = plotProjectedRegionsOnly(templateBrainLeft,mColors);
+view([270,0])
+
+figure('Position',[281          32        3060        1260]);
+[surface] = plotProjectedRegionsOnly(templateBrainRight,mColors);
+view([270,0])
+
+figure('Position',[281          32        3060        1260]);
+insulmColors = mColors(insulaBool,:);
+[surfaceInsula] = plotProjectedRegionsOnly(insulaTemplateLeft,insulmColors);
+view([270,0])
+
+figure('Position',[281          32        3060        1260]);
+hipAmygColors = mColors(hipAmygBool,:);
+[surfaceHA] = plotProjectedRegionsOnly(hipAmygTemplate,hipAmygColors);
+view([-176.4 -90.0])
+
+figure('Position',[281          32        3060        1260]);
+hipAmygColors = mColors(hipAmygBool,:);
+[surfaceHA] = plotProjectedRegionsOnly(hipAmygTemplate,hipAmygColors);
+view([-180.8 73.9])
+
+%PCC
+pAlphas = effectSizes(:,3);
+pNan = isnan(pAlphas);
+pAlphas(isnan(pAlphas)) = 0.8;
+[~,~,pColors] = electrodeEffectSizes(pAlphas,getColors('lago blue gradient'),1.5,4);
+pColors(pNan,:) = 0.8;
+
+figure('Position',[281          32        3060        1260]);
+[surface] = plotProjectedRegionsOnly(templateBrainLeft,pColors);
+view([270,0])
+
+figure('Position',[281          32        3060        1260]);
+[surface] = plotProjectedRegionsOnly(templateBrainRight,pColors);
+view([270,0])
+
+figure('Position',[281          32        3060        1260]);
+insulpColors = pColors(insulaBool,:);
+[surfaceInsula] = plotProjectedRegionsOnly(insulaTemplateLeft,insulpColors);
+view([270,0])
+
+figure('Position',[281          32        3060        1260]);
+hipAmygColors = pColors(hipAmygBool,:);
+[surfaceHA] = plotProjectedRegionsOnly(hipAmygTemplate,hipAmygColors);
+view([-176.4 -90.0])
+
+figure('Position',[281          32        3060        1260]);
+hipAmygColors = pColors(hipAmygBool,:);
+[surfaceHA] = plotProjectedRegionsOnly(hipAmygTemplate,hipAmygColors);
+view([-180.8 73.9])
+
+%% Now separate by left and right stimulation
+
+
+%conditions
+effectSizes = [];
+effectVariation = [];
+numSubjects = [];
+includedRegion = logical([]);
+
+%normalize cohens D for each condition
+
+for i = 1:length(templateBrain.regionList)
+    %find all channels within the brain region
+    curRegion = contains([pooledData.electrodeRegionLabel{:}],templateBrain.regionList{i});
+
+    %check number of subjects with coverage in this region
+    numSubjects(i) = length(unique(pooledData.subjectID(curRegion)));
+
+    %generate logical arrays for each condition, meeting significance,
+    %within current region
+
+    tempACCR = condition.AStim & curRegion & significant & ~stimulated & rightHStim;
+    tempMCCR = condition.MStim & curRegion & significant & ~stimulated & rightHStim;
+    tempPCCR = condition.PStim & curRegion & significant & ~stimulated & rightHStim;
+
+    tempACCL = condition.AStim & curRegion & significant & ~stimulated & leftHStim;
+    tempMCCL = condition.MStim & curRegion & significant & ~stimulated & leftHStim;
+    tempPCCL = condition.PStim & curRegion & significant & ~stimulated & leftHStim;
+
+    effectSizes(i,1) = nanmean(pooledData.cohensD(tempACCR));
+    effectSizes(i,2) = nanmean(pooledData.cohensD(tempMCCR));
+    effectSizes(i,3) = nanmean(pooledData.cohensD(tempPCCR));
+    effectSizes(i,4) = nanmean(pooledData.cohensD(tempACCL));
+    effectSizes(i,5) = nanmean(pooledData.cohensD(tempMCCL));
+    effectSizes(i,6) = nanmean(pooledData.cohensD(tempPCCL));
+
+    effectVariation(i,1) = nanstd(pooledData.cohensD(tempACCR));
+    effectVariation(i,2) = nanstd(pooledData.cohensD(tempMCCR));
+    effectVariation(i,3) = nanstd(pooledData.cohensD(tempPCCR));
+    effectVariation(i,4) = nanstd(pooledData.cohensD(tempACCL));
+    effectVariation(i,5) = nanstd(pooledData.cohensD(tempMCCL));
+    effectVariation(i,6) = nanstd(pooledData.cohensD(tempPCCL));
+
+        if any(contains(cingulateNamesSimple(1),templateBrain.regionList{i}))
+        effectSizes(i,1) = nan;% set self-connectivity to 0 in order to visualize relative connectivity of the other two sub-regions
+        effectSizes(i,4) = nan;
+        elseif any(contains(cingulateNamesSimple(2:3),templateBrain.regionList{i}))
+        effectSizes(i,2) = nan;% set self-connectivity to 0 in order to visualize relative connectivity of the other two sub-regions
+        effectSizes(i,5) = nan;
+        elseif any(contains(cingulateNamesSimple(4:5),templateBrain.regionList{i}))
+        effectSizes(i,3) = nan;% set self-connectivity to 0 in order to visualize relative connectivity of the other two sub-regions
+        effectSizes(i,6) = nan;
+        end
+
 end
-surface(6).FaceAlpha = 0.03;
 
-hold on
+%normalize each row so that maximum alpha can be assigned as between 0.2 and .7
+aAlphas = effectSizes(:,1);
+aNan = isnan(aAlphas); %store nan values to adjust to grey
+aAlphas(isnan(aAlphas)) = 0.8;
+[~,~,aColors] = electrodeEffectSizes(aAlphas,getColors('lush lilac gradient'),1.5,4);
+aColors(aNan,:) = 0.8;
 
-for ch = 1:length(rM)
-curChan = mE(ch,:);
-curColor = mC(ch,:);
-curR = rM(ch);
+figure('Position',[281          32        3060        1260]);
+[surfaceR] = plotProjectedRegionsOnly(templateBrainLeft,aColors);
+view([270,0])
 
-plotBallsOnVolume(gca,curChan, curColor, curR);
-end
+%%
+% 
+% Sig = pooledData.pValue < (0.05/length(pooledData.pValue));
+% 
+% aE = pooledData.electrodeCoordinates(:,(AStim & Sig))';
+% mE = pooledData.electrodeCoordinates(:,(MStim & Sig))';
+% pE = pooledData.electrodeCoordinates(:,(PStim & Sig))';
+% 
+% aRho = pooledData.cohensD((AStim & Sig));
+% mRho = pooledData.cohensD((MStim & Sig));
+% pRho = pooledData.cohensD((PStim & Sig));
+% 
+% [nA, rA, aC] = electrodeEffectSizes(aRho,getColors('lush lilac black gradient'),1.5,4);
+% [nM, rM, mC] = electrodeEffectSizes(mRho,getColors('celadon porcelain black gradient'),1.5,4);
+% [nP, rP, pC] = electrodeEffectSizes(pRho,getColors('lago blue black gradient'),1.5,4);
+% 
+% %%
+% 
+% regionColors2 = [[.8,0,0.1];
+%     [.8,0,0.1];
+%     [.8,0,0.1];
+%     [.8,0,0.1];
+%     [.8,0,0.1];
+%     0.2,0.2,0.2];
+% 
+% figure('Position',[281          32        3060        1260]);
+% [surface] = plotProjectedRegionsOnly(cortOut,regionColors2);
+% for i = 1:length(surface)
+% surface(i).FaceAlpha = 0.05;
+% end
+% surface(6).FaceAlpha = 0.03;
+% 
+% hold on
+% 
+% for ch = 1:length(rM)
+% curChan = mE(ch,:);
+% curColor = mC(ch,:);
+% curR = rM(ch);
+% 
+% plotBallsOnVolume(gca,curChan, curColor, curR);
+% end

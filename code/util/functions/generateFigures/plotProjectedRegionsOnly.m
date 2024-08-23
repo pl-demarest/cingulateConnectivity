@@ -18,7 +18,7 @@ for f = 1:length(regionFNS)
     surf(f) = trisurf(t,v(:,1),v(:,2),v(:,3),'CDataMapping', 'direct','linestyle', 'none','FaceLighting','gouraud','BackFaceLighting','unlit','AmbientStrength',.5,varargin{:});
     hold on
     %light(ax,'Position',[1 0 0],'Style','local');
-    %material(ax,'dull');
+    material(ax,'dull');
     set(ax,'AmbientLightColor',[1 1 1]);
     %camlight(ax,'headlight');
     set(ax,'xtick',[]);

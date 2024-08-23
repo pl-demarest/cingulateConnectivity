@@ -5,7 +5,7 @@ function [mappedColor, mappedCoord] = triangularGeoMean(values,figureFlag)
 
 
 % Define vertices of the triangle
-vertices = [0 0; 1 0; 0.5 sqrt(3)/2];
+vertices = [0 0; 1 0; 0.5 1];
 faces = [1 2 3];
 
 % Define colors at the vertices
@@ -40,10 +40,10 @@ h = patch('Faces', faces, 'Vertices', vertices, 'FaceVertexCData', vertexColors,
 axis equal;
 % Add a colorbar for reference
 hold off;
-% % Plot the mapped point on the triangle
-% hold on;
-% plot(mappedCoord(1), mappedCoord(2), 'ko', 'MarkerFaceColor', 'k');
-% hold off;
+% Plot the mapped point on the triangle
+hold on;
+plot(mappedCoord(1), mappedCoord(2), 'ko', 'MarkerFaceColor', 'k');
+hold off;
 end
 
 % Query the interpolated color at the mapped coordinate
@@ -54,6 +54,18 @@ G = F(mappedCoord(1), mappedCoord(2));
 F.Values = vertexColors(:, 3);
 B = F(mappedCoord(1), mappedCoord(2));
 mappedColor = [R, G, B];
+
+%account for colors that may miss
+
+if any(isnan(mappedColor))
+F = scatteredInterpolant(vertices(:, 1), vertices(:, 2), vertexColors(:, 1), 'linear', 'nearest');
+R = F(mappedCoord(1), mappedCoord(2));
+F.Values = vertexColors(:, 2);
+G = F(mappedCoord(1), mappedCoord(2));
+F.Values = vertexColors(:, 3);
+B = F(mappedCoord(1), mappedCoord(2));
+mappedColor = [R, G, B];
+end
 
 % Ensure color values are within [0, 1] range
 mappedColor(mappedColor < 0) = 0;
