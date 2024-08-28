@@ -1,4 +1,4 @@
-function [mappedColor, mappedCoord] = triangularGeoMean(values,figureFlag)
+function [mappedColor, mappedCoord] = triangularGeoMean(values,figureFlag,vertexColors)
 %takes in a vector of 3 values, normalizes them, and gcalculates a
 %geometric mean between the 3 values, then mapps the geommetric mean to an
 %RGB value to visualize relative geometric weights of the 3 values
@@ -8,10 +8,6 @@ function [mappedColor, mappedCoord] = triangularGeoMean(values,figureFlag)
 vertices = [0 0; 1 0; 0.5 1];
 faces = [1 2 3];
 
-% Define colors at the vertices
-%vertexColors = [getColors('lush lilac'); getColors('modern orange'); getColors('lago blue')]; % RGB colors at vertices
-%vertexColors = [1,0,0;0,1,0;0,0,1];
-vertexColors = [222,45,38;49,163,84;49,90,230]./255;
 
 
 % Compute the geometric mean

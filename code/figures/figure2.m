@@ -24,16 +24,9 @@ rightHStim = contains([pooledData.stimulatedRegion{:}],'_rh_');
 leftHRec = pooledData.electrodeCoordinates(1,:) < 0;
 rightHRec = pooledData.electrodeCoordinates(1,:) > 0;
 
-cingulateNamesSimple = {'G_and_S_cingul-Ant'
-'G_and_S_cingul-Mid-Ant'
-'G_and_S_cingul-Mid-Post'
-'G_cingul-Post-dorsal'
-'G_cingul-Post-ventral'};
-
 % get logical array for significant responses
 alpha = calculateAlphaThreshold(pooledData.pValue, 0.01);
-
-significant = pooledData.pValue < alpha;
+significant = (pooledData.pValue < alpha) & (pooledData.cohensD > 0);
 
 stimulated = logical(pooledData.stimulatedChannels);
 
@@ -109,14 +102,43 @@ box off
 
 saveas(gcf,[saveDir exemplarNames{i} '_coherenceDistribution_.svg'])
 end
-
-
 %% FIGURE 2d %%%%%%%%%%%%%%%%
+%General plot showing the relationship between coherence and RMS, and the
+%one-dimensional scatter plot showing significant vs non-significant
+%responses 
+
+figure('position',[452         697        1157         297]);
+scatterDistribution1D(pooledData.cohensD(~significant),pooledData.cohensD,.1,.3,0.05,[0,0,0])
+hold on
+scatterDistribution1D(pooledData.cohensD(significant & ~stimulated),pooledData.cohensD,.1,.3,0.05,[1,0,0])
+xlabel('Cohen''s D');
+set(gca,'ytick',[]);
+set(gca,'ycolor','none')
+box off
+saveas(gcf,[saveDir '_coherenceDistributionSignificantResponses_.svg'])
+
+figure();
+scatter(pooledData.cohensD,pooledData.RMS,'MarkerFaceColor','k','MarkerEdgeColor','none','MarkerFaceAlpha',0.1)
+hold on
+[r,p] = corr(pooledData.cohensD',pooledData.RMS','Type','Spearman');
+
+pf = polyfit(pooledData.cohensD,pooledData.RMS, 1);
+px = [min(pooledData.cohensD) max(pooledData.cohensD)];
+py = polyval(pf, px);
+plot(px, py, 'LineWidth', 1.5,'Color','r');
+text(0,.75,['p = ' num2str(p) newline 'r = ' num2str(r)],'Units','normalized','LineWidth',2)
+box off
+
+xlabel('Cohens D')
+ylabel('RMS')
+
+
+%% FIGURE 2e %%%%%%%%%%%%%%%%
 %violin plots showing the distributions of data for coherence and for
 %variance. Note that these plot functions require the violinplot matlab
 %commmunity package downloaded from :https://github.com/bastibe/Violinplot-Matlab
 
-%% First visualize violin plots of coherence and 
+%% First visualize violin plots of coherence and Variance
 
 %format data for plotting functions
 datIn = pooledData.cohensD(sigChannelsIDX);
@@ -124,9 +146,7 @@ datIn(datIn == 0) = nan;
 dataToPlot = groupData(datIn,idx);
 
 %for violinplot function
-colorsVP = [aColor;mColor;pColor];
-%for swamchart
-colorsVP2 = [aColor;aColor;mColor;mColor;pColor;pColor];
+colors = [aColor;mColor;pColor];
 %generate offset of violin plots
 offset = 0.05;
 groups = [1-offset,1+offset,2-offset,2+offset,3-offset,3+offset];
@@ -136,51 +156,60 @@ left = [1,3,5];
 right = [2,4,6];
 
 figure('position',[72   805   935   479])
-%first plot the left stimulation groups
-vp = violinplot(dataToPlot(:,left),groups(left),'ViolinColor',colorsVP,'ShowData',false,'HalfViolin','left','ShowMedian',false,'EdgeColor',[0,0,0],'ShowBox',false,'Width',0.3,'ViolinAlpha',0.2);
-hold on
-%nex tplot the right sitmulation groups
-vp2 = violinplot(dataToPlot(:,right),groups(right),'ViolinColor',colorsVP,'ShowData',false,'HalfViolin','right','ShowMedian',false,'EdgeColor',[0,0,0],'ShowBox',false,'Width',0.3,'ViolinAlpha',0.2);
-hold on
 
-%offset data and adjust appearance using object fields 
-for v = 1:length(vp2)
-vp(1,v).ViolinPlot.XData = vp(1,v).ViolinPlot.XData-offset;
-vp2(1,v).ViolinPlot.XData = vp2(1,v).ViolinPlot.XData+0.05;
+leftRightViolin(dataToPlot,groups,left,right,colors,offset)
 
-vp(1,v).ViolinPlot.EdgeAlpha = 0;
-vp2(1,v).ViolinPlot.EdgeAlpha = 0;
+xticklabels({'ACC','MCC','PCC'})
+set(gca,'linewidth',.75, 'FontSize',24,'FontName','Helvetica')
+ylabel('Coherence (Rho)')
+box off
+saveas(gcf,[saveDir '_coherenceViolin_.svg'])
 
-vp(1,v).ShowWhiskers = 0;
-vp2(1,v).ShowWhiskers = 0;
-end
-for i = 1:length(groups)
-curColor = colorsVP2(i,:);
-curMedian = nanmean(dataToPlot(:,i));
+% run statistics on groups and display
+a = dataToPlot(:,1:2);
+m = dataToPlot(:,3:4);
+p = dataToPlot(:,5:6);
 
-swarmchart(groups(i),dataToPlot(:,i)',[],curColor,'filled','MarkerFaceAlpha',0.3);
-hold on
-%Adjust placement of swarmcharts
-if rem(i,2) == 1
-    l = groups(i) - 0.1;
-else
-    l = groups(i) + 0.1;
-end
-plot([l groups(i)],[curMedian curMedian],'Linewidth',2,'Color',curColor)
-end
+am = ranksum(a(:),m(:))
+ap = ranksum(a(:),p(:))
+mp = ranksum(m(:),p(:))
+
+aa = ranksum(dataToPlot(:,1),dataToPlot(:,2))
+mm = ranksum(dataToPlot(:,3),dataToPlot(:,4))
+pp = ranksum(dataToPlot(:,5),dataToPlot(:,6))
+
+%format data for plotting functions
+datIn = pooledData.variance(sigChannelsIDX);
+datIn(datIn == 0) = nan;
+dataToPlot = groupData(datIn,idx);
+
+leftRightViolin(dataToPlot,groups,left,right,colors,offset)
 
 xticklabels({'ACC','MCC','PCC'})
 
 set(gca,'linewidth',.75, 'FontSize',24,'FontName','Helvetica')
-ylabel('Coherence (Rho)')
+ylabel('Variance')
 box off
-%% TODO %% ADD VARIANCE SECTION AND VALIDATION STATISTICS
 
+saveas(gcf,[saveDir '_coherenceVarViolin_.svg'])
 
-%% Figure 2e %%%%%%%%%
+% run statistics on groups and display
+a = dataToPlot(:,1:2);
+m = dataToPlot(:,3:4);
+p = dataToPlot(:,5:6);
+
+am = ranksum(a(:),m(:))
+ap = ranksum(a(:),p(:))
+mp = ranksum(m(:),p(:))
+
+aa = ranksum(dataToPlot(:,1),dataToPlot(:,2))
+mm = ranksum(dataToPlot(:,3),dataToPlot(:,4))
+pp = ranksum(dataToPlot(:,5),dataToPlot(:,6))
+
+%% Figure 2f %%%%%%%%%
 %netowrk plot showing the wiring diagram of each subregion of the cingulate
 %cortex
-%% Figure 2f %%%%%%%%
+%% Figure 2g %%%%%%%%
 % 3d brain models of all regions that have known shared connectivity with
 % all 3 subregions, and their relative connectivity to each subregion
 
@@ -193,6 +222,7 @@ colors = [];
 coordinates = [];
 numSubjects = [];
 includedRegion = logical([]);
+percentSignficant = [];
 
 for i = 1:length(templateBrain.regionList)
     %find all channels within the brain region
@@ -212,6 +242,10 @@ for i = 1:length(templateBrain.regionList)
     tempMCC = condition.MStim & curRegion & significant & ~stimulated;
     tempPCC = condition.PStim & curRegion & significant & ~stimulated;
 
+    percentSignificant(1,i) = sum(tempACC)/(sum(tempACC)+ sum(condition.AStim & curRegion & ~significant & ~stimulated)); %percentage of singificant observations
+    percentSignificant(2,i) = sum(tempMCC)/(sum(tempMCC) + sum(condition.MStim & curRegion & ~significant & ~stimulated)); %percent of significant observations
+    percentSignificant(3,i) = sum(tempPCC)/(sum(tempPCC) + sum(condition.PStim & curRegion & ~significant & ~stimulated));
+
     % check to make sure at least one value exists for each of the three
     % above groups, for other regions of the singulate check the other two
     % regions, and ignore
@@ -229,9 +263,23 @@ for i = 1:length(templateBrain.regionList)
         p = 0;% set self-connectivity to 0 in order to visualize relative connectivity of the other two sub-regions
         end
         values = [a,m,p];
-        [colors(i,:),coordinates(i,:)] = triangularGeoMean(values,'off');
+        [colors(i,:),coordinates(i,:)] = triangularGeoMean(values,'off',getColors('cyan magenta yellow'));
         includedRegion(i) = 1;
+    
+    % for conditions where at least one region is significant and the
+    % others are not
 
+    elseif any([any(tempACC),any(tempMCC),any(tempPCC)]) && ~any(contains(cingulateNamesSimple,templateBrain.regionList{i}))
+
+        a = nanmean(pooledData.cohensD(tempACC));
+        m = nanmean(pooledData.cohensD(tempMCC));
+        p = nanmean(pooledData.cohensD(tempPCC));
+
+        values = [a,m,p];
+        values(isnan(values)) = 0;
+        [colors(i,:),coordinates(i,:)] = triangularGeoMean(values,'off',getColors('cyan magenta yellow'));
+        includedRegion(i) = 1;
+            
     %condition where current region is ACC, MCC, or PCC, check if coverage
     %exists for the other two regions
     elseif any(contains(cingulateNamesSimple(1),templateBrain.regionList{i})) && all([any(tempMCC),any(tempPCC)])
@@ -239,21 +287,21 @@ for i = 1:length(templateBrain.regionList)
         m = nanmean(pooledData.cohensD(tempMCC));
         p = nanmean(pooledData.cohensD(tempPCC));
         values = [a,m,p];
-        [colors(i,:),coordinates(i,:)] = triangularGeoMean(values,'off');
+        [colors(i,:),coordinates(i,:)] = triangularGeoMean(values,'off',getColors('cyan magenta yellow'));
         includedRegion(i) = 1;
     elseif any(contains(cingulateNamesSimple(2:3),templateBrain.regionList{i})) && all([any(tempACC),any(tempPCC)])
         a = nanmean(pooledData.cohensD(tempACC));%  set self-connectivity to 0 in order to visualize relative connectivity of the other two sub-regions
         m = 0;
         p = nanmean(pooledData.cohensD(tempPCC));
         values = [a,m,p];
-        [colors(i,:),coordinates(i,:)] = triangularGeoMean(values,'off');
+        [colors(i,:),coordinates(i,:)] = triangularGeoMean(values,'off',getColors('cyan magenta yellow'));
         includedRegion(i) = 1;
     elseif any(contains(cingulateNamesSimple(4:5),templateBrain.regionList{i})) && all([any(tempACC),any(tempMCC)])
         a = nanmean(pooledData.cohensD(tempACC));%  set self-connectivity to 0 in order to visualize relative connectivity of the other two sub-regions
         m = nanmean(pooledData.cohensD(tempMCC));
         p = 0;
         values = [a,m,p];
-        [colors(i,:),coordinates(i,:)] = triangularGeoMean(values,'off');
+        [colors(i,:),coordinates(i,:)] = triangularGeoMean(values,'off',getColors('cyan magenta yellow'));
         includedRegion(i) = 1;
     else
     % assign white as the color
@@ -320,7 +368,7 @@ figure('Position',[281          32        3060        1260]);
 % Define vertices of the triangle
 vertices = [0 0; 1 0; 0.5 1];
 faces = [1 2 3];
-vertexColors = getColors('damp rgb');
+vertexColors = getColors('cyan magenta yellow');
 hold on;
 % Plot the triangle with interpolated colors
 h = patch('Faces', faces, 'Vertices', vertices, 'FaceVertexCData', vertexColors, ...
@@ -340,6 +388,7 @@ effectSizes = [];
 effectVariation = [];
 numSubjects = [];
 includedRegion = logical([]);
+percentSignificant = [];
 
 %normalize cohens D for each condition
 
@@ -467,7 +516,6 @@ hipAmygColors = pColors(hipAmygBool,:);
 view([-180.8 73.9])
 
 %% Now separate by left and right stimulation
-
 
 %conditions
 effectSizes = [];

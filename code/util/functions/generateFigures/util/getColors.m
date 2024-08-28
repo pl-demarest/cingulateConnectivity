@@ -15,6 +15,15 @@ switch(schemeName)
 
         colors = [222,45,38;49,163,84;49,90,230]./255;
 
+    case 'cyan magenta yellow'
+
+        colors = [
+    0 1 1;  % Cyan
+    1 0 1;  % Magenta
+    1 1 0   % Yellow
+    ];
+
+
     case 'rainbow matrix'
     colors = [
     143, 82, 182; % Original Purple

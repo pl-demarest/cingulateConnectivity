@@ -16,13 +16,13 @@ sigIDX = [data.pValue] < alphaThreshold;
 
 tempCCEP = rms(pooledData.CCEPs([1920:3320],:));
 
-x = [data(sigIDX).cohensD];
-y = [tempCCEP(sigIDX)];
+x = [pooledData.cohensD];
+y = [tempCCEP(significant)];
 y(isnan(y)) = 0;
 
 figure;
 scatter(x,y)
-[r,p] = corr(x',y','Type','Pearson');
+[r,p] = corr(x',y','Type','Spearman');
 
 %% Group data by region stimulated (ACC, MCC, PCC)
 rightACC = {'ctx_rh_G_and_S_cingul-Ant','wm_rh_G_and_S_cingul-Ant'};

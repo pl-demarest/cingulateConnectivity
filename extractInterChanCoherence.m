@@ -41,7 +41,7 @@ storeTaskCor = cell(length(regions),length(regions));
 
 %%
 conditions = fieldnames(c);
-baseWindow = [1:627];
+baseWindow = [1:615];
 taskWindow = [641: 1108];
 % left hemisphere
 lh = chans(:,1) < 0;

@@ -23,7 +23,7 @@ for dat = 1:length(dataFiles)
 if ~isfile(saveCoherenceFile)
     
     runAnalysis = data.spesSmallLaplace;
-    baselineWindow = 1:.9*data.samplingRate;
+    baselineWindow = 1:.85*data.samplingRate;
     taskWindow = .95*data.samplingRate:(.95*data.samplingRate + (0.7*data.samplingRate));
 
     clear data
