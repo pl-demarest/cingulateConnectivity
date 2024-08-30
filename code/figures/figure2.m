@@ -234,17 +234,24 @@ for i = 1:length(templateBrain.regionList)
     %generate logical arrays for each condition, meeting significance,
     %within current region
     if ~any(curRegion)% check to see if any coverage exists (black if there is no color)
-    colors(i,:) = [0.8,0.8,0.8];
+    colors(i,:) = [0.3,0.3,0.3];
     coordinates(i,:) = [nan,nan]; 
     includedRegion(i) = 0;
-    end
+    
+    else
     tempACC = condition.AStim & curRegion & significant & ~stimulated;
     tempMCC = condition.MStim & curRegion & significant & ~stimulated;
     tempPCC = condition.PStim & curRegion & significant & ~stimulated;
 
-    percentSignificant(1,i) = sum(tempACC)/(sum(tempACC)+ sum(condition.AStim & curRegion & ~significant & ~stimulated)); %percentage of singificant observations
-    percentSignificant(2,i) = sum(tempMCC)/(sum(tempMCC) + sum(condition.MStim & curRegion & ~significant & ~stimulated)); %percent of significant observations
-    percentSignificant(3,i) = sum(tempPCC)/(sum(tempPCC) + sum(condition.PStim & curRegion & ~significant & ~stimulated));
+    %get logical array for condition, but without a significant response.
+    %Use this to determine whether there is coverage in all conditions
+    tempACCns = condition.AStim & curRegion & ~significant & ~stimulated;
+    tempMCCns = condition.MStim & curRegion & ~significant & ~stimulated;
+    tempPCCns = condition.PStim & curRegion & ~significant & ~stimulated;
+
+    percentSignificant(1,i) = sum(tempACC)/(sum(tempACC) + sum(tempACCns)); %percentage of singificant observations
+    percentSignificant(2,i) = sum(tempMCC)/(sum(tempMCC) + sum(tempMCCns)); %percent of significant observations
+    percentSignificant(3,i) = sum(tempPCC)/(sum(tempPCC) + sum(tempPCCns));
 
     % check to make sure at least one value exists for each of the three
     % above groups, for other regions of the singulate check the other two
@@ -268,9 +275,10 @@ for i = 1:length(templateBrain.regionList)
     
     % for conditions where at least one region is significant and the
     % others are not
+    elseif any([any(tempACC), any(tempMCC), any(tempPCC)]) && ~any(contains(cingulateNamesSimple,templateBrain.regionList{i})) && all([any(tempACC | tempACCns), any(tempMCC | tempMCCns), any(tempPCC | tempPCCns)])
 
-    elseif any([any(tempACC),any(tempMCC),any(tempPCC)]) && ~any(contains(cingulateNamesSimple,templateBrain.regionList{i}))
-
+        %if any of the regions contain significant responses, check to make
+        %sure that the other two 
         a = nanmean(pooledData.cohensD(tempACC));
         m = nanmean(pooledData.cohensD(tempMCC));
         p = nanmean(pooledData.cohensD(tempPCC));
@@ -279,7 +287,7 @@ for i = 1:length(templateBrain.regionList)
         values(isnan(values)) = 0;
         [colors(i,:),coordinates(i,:)] = triangularGeoMean(values,'off',getColors('cyan magenta yellow'));
         includedRegion(i) = 1;
-            
+        
     %condition where current region is ACC, MCC, or PCC, check if coverage
     %exists for the other two regions
     elseif any(contains(cingulateNamesSimple(1),templateBrain.regionList{i})) && all([any(tempMCC),any(tempPCC)])
@@ -303,13 +311,22 @@ for i = 1:length(templateBrain.regionList)
         values = [a,m,p];
         [colors(i,:),coordinates(i,:)] = triangularGeoMean(values,'off',getColors('cyan magenta yellow'));
         includedRegion(i) = 1;
-    else
+    
+    %condition where coverage in at least one stim condition, but not all
+    elseif any([any(tempACC | tempACCns), any(tempMCC | tempMCCns), any(tempPCC | tempPCCns)]) && ~all([any(tempACC | tempACCns), any(tempMCC | tempMCCns), any(tempPCC | tempPCCns)])
     % assign white as the color
-    colors(i,:) = [0.8,0.8,0.8];
+    colors(i,:) = [0.6,0.6,0.6];
+    coordinates(i,:) = [nan,nan];
+    includedRegion(i) = 0;
+    
+    %condition where no significant responses occur
+    elseif ~any([any(tempACC | tempACCns), any(tempMCC | tempMCCns), any(tempPCC | tempPCCns)])
+    colors(i,:) = [0.9,0.9,0.9];
     coordinates(i,:) = [nan,nan];
     includedRegion(i) = 0;
     end
-    
+
+    end
 end
 
 %plot figure using colors
