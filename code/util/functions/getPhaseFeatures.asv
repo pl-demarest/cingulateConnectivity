@@ -17,10 +17,12 @@ meanMag = nanmean(squeeze(mag),2);
 magPtsON = findchangepts(diff(meanMag),MaxNumChanges=2,Statistic="rms");
 magPtsOFF = findchangepts(meanMag,MaxNumChanges=2,Statistic="linear");
 
-if isempty(magPtsON)
+if isempty(magPtsOn)
 magPts = magPtsOFF;
-elseif magPtsON(1) <= minIndex
+
+elseif magPtsOn(1) <= minIndex
 magPts = magPtsOFF;
+
 end
 
 if isempty(magPts)
