@@ -59,7 +59,7 @@ else
     data.baseline.surfaceEEG = nan; 
     data.surfaceEEGZScore = nan;
     data.surfaceEEG = nan;
-    hibertOutEEG = struct;
+    hilbertOutEEG = struct;
 end
 
 

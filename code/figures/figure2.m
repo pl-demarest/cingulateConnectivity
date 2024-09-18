@@ -107,6 +107,8 @@ end
 %one-dimensional scatter plot showing significant vs non-significant
 %responses 
 
+%%
+
 figure('position',[452         697        1157         297]);
 scatterDistribution1D(pooledData.cohensD(~significant),pooledData.cohensD,.1,.3,0.05,[0,0,0])
 hold on
@@ -207,8 +209,55 @@ mm = ranksum(dataToPlot(:,3),dataToPlot(:,4))
 pp = ranksum(dataToPlot(:,5),dataToPlot(:,6))
 
 %% Figure 2f %%%%%%%%%
-%netowrk plot showing the wiring diagram of each subregion of the cingulate
+%netowork wiring plot showing the wiring diagram of each subregion of the cingulate
 %cortex
+
+%% First, extract necessary data to feed into the figure generating engine
+
+%Reorganize table by merging somatosensory and motor regions, and remove
+%any class regions "Other"
+figureRegions = regionSort;
+merge = contains(figureRegions.Class,{'Motor Cortex','Somatosensory Cortex'});
+mergeTo = 'Somato-Motor Cortex';
+
+remove = contains(figureRegions.Class,{'Occipital Lobe', 'Other', 'White Matter', 'White matter'});
+
+figureRegions.Class(merge) = {mergeTo};
+figureRegions(remove,:) = [];
+
+%reorger and sort regions by region CLass
+classOrder = {'Orbitofrontal cortex','Frontal Lobe','Cingulate cortex','Somato-Motor Cortex','Operculum','Temporal Lobe','Hippocampus','Amygdala','Insula','Parietal Lobe','Occipital Lobe','Thalamus'};
+
+[~,idx] = ismember(figureRegions.Class,classOrder);
+[~,sortIDX] = sort(idx);
+figureRegions = figureRegions(sortIDX,:);
+
+[~,groupLabels] = ismember(figureRegions.Class,classOrder);
+% Using the y coordinates of electrodes with labels, organize the table
+% region names within each group to be from anterior to posterior
+groupLabelsUnique = unique(groupLabels);
+
+% iterate through each group, identify all the regions, obtain an average y
+% value for each, reorder based on anterior to posterior of each group
+for g = 1:length(groupLabelsUnique)
+initDistances = [];
+
+curRegionsIDX = groupLabels == groupLabelsUnique(g);
+curRegions = figureRegions.Name(curRegionsIDX);
+
+for r = 1:length(curRegions)
+regionsIDX = contains([pooledData.electrodeRegionLabel{:}],curRegions{r});
+tempDistances = mean(pooledData.electrodeCoordinates(:));
+
+end
+
+
+end
+
+
+
+
+
 %% Figure 2g %%%%%%%%
 % 3d brain models of all regions that have known shared connectivity with
 % all 3 subregions, and their relative connectivity to each subregion

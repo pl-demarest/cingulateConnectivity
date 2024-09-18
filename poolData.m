@@ -6,6 +6,7 @@ fileCohDir = 'data/coherence/';
 fileGammaDir = 'data/gamma/';
 fileFeatures = 'data/waveformFeatures/';
 filePhase = 'data/phase/';
+fileHilbert = 'data/hilbert/';
 
 files = dir(fileNameDir);
 filesidx = [files.isdir];
@@ -30,15 +31,18 @@ electrodeName = [];
 electrodeCoord = [];
 stimChannel = [];
 cceps = [];
-EEG = [];
-EEGChans = [];
+
 stimRegions = [];
 fileName = [];
 cohDistFileName = [];
 cohFileName = [];
 chanNumber = [];
+
+EEG = [];
+EEGChans = [];
 eegChanNumber = [];
 eegStimulatedRegion = [];
+eegERP = [];
 
 numN1 = [];
 numN2 = [];
@@ -88,6 +92,7 @@ load([fileFeatures 'features_' currentFile]);
 phase = load([filePhase 'phase_' currentFile]);
 gamma = load([fileGammaDir 'gamma_' currentFile]);
 
+
 for i = 1:numel(data.stimulatedRegion)
     if isa(data.stimulatedRegion{i}, 'string')
         data.stimulatedRegion{i} = cellstr(data.stimulatedRegion{i});
@@ -120,14 +125,24 @@ electrodeCoord = [electrodeCoord, data.VERA.tala.electrodes'];
 stimChannel = [stimChannel, stimChans];
 chanNumber = [chanNumber, 1:size(data.spesSmallLaplaceZScore,1)];
 
-averageTraces = squeeze(nanmean(data.spesSmallLaplaceZScore,3));
-averageEEG = squeeze(nanmean(data.surfaceEEGZScore,3));
+averageTraces = squeeze(nanmedian(data.spesSmallLaplaceZScore,3));
 
-cceps = [cceps, averageTraces'];
+if ~isnan(data.surfaceEEGZScore)
+averageEEG = squeeze(nanmedian(data.surfaceEEGZScore,3));
+
+load([fileHilbert 'hilbertEEG_' currentFile], 'broadbandLF');
+averageERP = squeeze(nanmedian(abs(broadbandLF),3));
+
 EEG = [EEG, averageEEG'];
 EEGChans = [EEGChans, eeglabels(1:size(averageEEG,1))];
 eegChanNumber = [eegChanNumber, 1:size(averageEEG,1)];
 eegStimulatedRegion = [eegStimulatedRegion,repmat({matchingStrings(1)},1,numEEGChans)];
+eegERP = [eegERP, averageERP'];
+
+end
+
+
+cceps = [cceps, averageTraces'];
 
 numN1 = [numN1, responseStruct.numPeaksN1];
 numN2 = [numN2, responseStruct.numPeaksN2];
@@ -184,10 +199,13 @@ pooledData.electrodeName = electrodeName;
 pooledData.electrodeCoordinates = electrodeCoord;
 pooledData.stimulatedChannels = stimChannel;
 pooledData.CCEPs = cceps;
+
 pooledData.EEG = EEG;
 pooledData.EEGChans = EEGChans;
 pooledData.EEGChannelNumber =eegChanNumber;
 pooledData.EEGStimulatedRegion = eegStimulatedRegion;
+pooledData.EEGERP = eegERP;
+
 pooledData.stimulatedRegion = stimRegions;
 pooledData.dataFileName = fileName;
 pooledData.coherenceFileName = cohFileName;

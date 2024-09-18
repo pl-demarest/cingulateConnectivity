@@ -14,7 +14,29 @@ magRaw = abs(squeeze(input.broadbandLF(ch,:,:)));
 mag = getZScore(magRaw,baselineWindow);
 meanMag = nanmean(squeeze(mag),2);
 
-magPts = findchangepts(meanMag,MaxNumChanges=2,Statistic="mean");
+magPtsON = findchangepts(diff(meanMag),MaxNumChanges=2,Statistic="rms");
+magPtsOFF = findchangepts(meanMag,MaxNumChanges=2,Statistic="linear");
+
+       if isempty(magPtsON ) && isempty(magPtsOFF)
+
+        magPts = [nan,nan];
+       
+       elseif isempty(magPtsON) && ~isempty(magPtsOFF)
+        
+
+        if ~isscalar(magPtsOFF)
+        magPts = magPtsOFF;
+        elseif isscalar(magPtsOFF) && (magPtsOFF > 2300 || magPtsOFF <1700)
+        magPts = [nan,nan];
+        else
+        magPts= [magPtsOFF, length(meanMag(ch,:))];
+        end
+       elseif isscalar(magPtsOFF) && ~isempty(magPtsON)
+       magPts = [magPtsON(1), magPtsOFF(1)];
+       %adjust depending on whether or not a response is detected:
+       else
+       magPts = [magPtsON(1), magPtsOFF(2)];
+       end
 
 if isempty(magPts)
 magPts = [nan,nan];

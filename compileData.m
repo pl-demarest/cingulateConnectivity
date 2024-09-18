@@ -103,9 +103,6 @@ for i = 1:dataLength
         data(i).label = 6;
 
     end
-    
-
-
 
 end
 
@@ -206,4 +203,6 @@ for i = 1:dataLength
 
 end
 
-save('data/compiledDataMatrix.mat','dataMat','-mat','-v7.3')
+dataMatKey = fieldnames(data);
+
+save('data/compiledDataMatrix.mat','dataMat','dataMatKey','-mat','-v7.3')
