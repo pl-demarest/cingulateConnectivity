@@ -15,6 +15,9 @@ filesidx = [files.isdir];
 files = files(~filesidx);
 dataFiles = {files.name};
 
+load([dataDirectory dataFiles{1}],'samplingRate');
+sr = samplingRate;
+
 for dat = 1:length(dataFiles)
     currentFile = dataFiles{dat};
     saveGammaFile = [savePhaseDirectory 'gamma_' currentFile];
@@ -22,9 +25,7 @@ for dat = 1:length(dataFiles)
 if ~isfile(saveGammaFile)
 
     runAnalysis = load([hilbertDirectory 'hilbertSEEG_' currentFile],'broadbandGamma');
-    
-    load([dataDirectory currentFile],'samplingRate');
-    sr = samplingRate;
+
     baselineWindow = 1:.9*sr;
     taskWindow = .95*sr:(.95*sr + (0.95*sr));
     

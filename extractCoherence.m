@@ -16,17 +16,17 @@ dataFiles = {files.name};
 
 for dat = 1:length(dataFiles)
 
-    data = load(dataFiles{dat});
     saveCoherenceFile = [saveDirectory 'coherence_' dataFiles{dat}];
     saveDistributionFile = [saveDirectory 'distribution_' dataFiles{dat}];
 
-if ~isfile(saveCoherenceFile)
     
-    runAnalysis = data.spesSmallLaplace;
-    baselineWindow = 1:.85*data.samplingRate;
-    taskWindow = .95*data.samplingRate:(.95*data.samplingRate + (0.7*data.samplingRate));
+if ~isfile(saveCoherenceFile)
 
-    clear data
+    load(dataFiles{dat},'spesSmallLaplace','samplingRate');
+    
+    runAnalysis = spesSmallLaplace;
+    baselineWindow = 1:.85*samplingRate;
+    taskWindow = .95*samplingRate:(.95*samplingRate + (0.7*samplingRate));
 
     coherenceStruct = getCoherenceSingleChannel(runAnalysis,baselineWindow,taskWindow);
 

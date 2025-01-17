@@ -48,7 +48,7 @@ regionClasses = regionTable.Class;
 
 % extract indexes of significant channels as per multiple correction
 % method:
-sigIDX = find(pooledData.pValue < 0.05/length(pooledData.pValue));
+sigIDX = find(pooledData.pValue < alpha);
 cohD = pooledData.cohensD(sigIDX);
 var = pooledData.variance(sigIDX);
 coords = pooledData.electrodeCoordinates(:,sigIDX);
@@ -66,7 +66,7 @@ nonCingulateClasses(nonCingulateRegionsIDX) = [];
 
 %% generarte a circle  
 
-[outer, inner] = generateCircleNetworkPoints(15,3,2*(length(regions)-length(nonCingulateRegionsIDX)),length(groups));
+[outer,intermediate1, intermediate2, inner] = generateCircleNetworkPoints(15,3,2*(length(regions)-length(nonCingulateRegionsIDX)),length(groups),outerLabels,12,8);
 
 %% Plot the circle 
 lastPointIDX = 1;

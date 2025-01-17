@@ -21,7 +21,18 @@ if isempty(magPtsON)
 magPts = magPtsOFF;
 elseif magPtsON(1) <= minIndex
 magPts = magPtsOFF;
+else
+magPts = magPtsOFF;
+magPts(1) = magPtsON(1);
+
+if length(magPts) == 2
+    if magPts(1) > magPts(2)
+        magPts = flip(magPts);
+    end
 end
+
+end
+
 
 if isempty(magPts)
 magPts = [nan,nan];

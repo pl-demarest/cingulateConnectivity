@@ -297,13 +297,13 @@ outerTable = figureRegions(~ismember(figureRegions.Name,cingulateNamesSimple),:)
 innerTable = figureRegions(contains(figureRegions.Name,cingulateNamesSimple),:);
 
 %change class labels for innerTable for stimulation conditions
-innerTable.Class = {'ACC';'MCC';'MCC';'PCC';'PCC'};
+innerTable.Class = ['ACC';'MCC';'MCC';'PCC';'PCC'];
 
-%% create wiring figure
 %generate necessary geometric resources to create the wiring figure
-[outer, inner] = generateCircleNetworkPoints(15,3, 4, 12, outerTable, innerTable);
 
-generateNetworkPlot(outer, inner, pooledData, 'cohensD', significant, 'offset',  'offsetStep', 0.005);
+[outer, inner] = generateCircleNetworkPoints(15,3,6, 13, outerTable, innerTable);
+
+generateNetworkPlot(outer, inner, pooledData, 'cohensD', significant, 'offset',  'stepOffset', 0.005);
 
 %% Figure 2g %%%%%%%%
 % 3d brain models of all regions that have known shared connectivity with
