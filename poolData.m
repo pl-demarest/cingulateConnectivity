@@ -30,6 +30,7 @@ electrodeLabel = [];
 electrodeName = [];
 electrodeCoord = [];
 stimChannel = [];
+stimChansCoord = [];
 cceps = [];
 
 stimRegions = [];
@@ -81,6 +82,8 @@ gammaDuration = [];
 gammaPeak = [];
 gammaPeakLatency = [];
 
+rmsP = [];
+
 
 for f = 1:length(dataFiles)
 
@@ -106,6 +109,11 @@ numChans = length(distributionStruct.cohensD);
 numEEGChans = size(data.surfaceEEGZScore,1);
 stimChans = zeros(1,numChans);
 stimChans(data.stimulatedChannels) = 1;
+stimChans = logical(stimChans);
+tempStimCoord = data.VERA.tala.electrodes(stimChans,:);
+midpoint = (tempStimCoord(1,:)+tempStimCoord(2,:)) / 2;
+
+stimChansCoord = [stimChansCoord, repmat(midpoint',1,length(stimChans))];
 
 cohD = [cohD, distributionStruct.cohensD];
 var = [var, distributionStruct.variance];
@@ -126,6 +134,17 @@ stimChannel = [stimChannel, stimChans];
 chanNumber = [chanNumber, 1:size(data.spesSmallLaplaceZScore,1)];
 
 averageTraces = squeeze(nanmedian(data.spesSmallLaplaceZScore,3));
+
+storeRMSP = [];
+for ch = 1:size(data.spesSmallLaplaceZScore,1) %get a P value for RMS
+    temp = squeeze(data.spesSmallLaplaceZScore(ch,:,:));
+    rmsBase = rms(temp(1:1880,:));
+    rmsTask = rms(temp(1920:3320,:));
+    p = signrank(rmsBase,rmsTask);
+    storeRMSP(ch) = p;
+end
+
+rmsP = [rmsP, storeRMSP];
 
 if ~isnan(data.surfaceEEGZScore)
 averageEEG = squeeze(nanmedian(data.surfaceEEGZScore,3));
@@ -198,6 +217,7 @@ pooledData.electrodeRegionLabel = electrodeLabel;
 pooledData.electrodeName = electrodeName;
 pooledData.electrodeCoordinates = electrodeCoord;
 pooledData.stimulatedChannels = stimChannel;
+pooledData.stimulatedChannelCoord = stimChansCoord;
 pooledData.CCEPs = cceps;
 
 pooledData.EEG = EEG;
@@ -224,6 +244,7 @@ pooledData.n2Width = n2W;
 pooledData.n2Prominence = n2Prom;
 pooledData.responseDurationByPeak = duration;
 pooledData.RMS = rms(cceps(1920:3320,:));
+pooledData.RMSP = rmsP;
 pooledData.n1PeakToBaselineRatio = n1ratio;
 pooledData.angleCharacteristics = angleChars;
 pooledData.angleCharacteristicsTime = angleCharTime;

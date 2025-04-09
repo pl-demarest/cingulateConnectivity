@@ -9,9 +9,12 @@ for f = 1:length(regionFNS)
     t = structIn.regions.(curRegion{:}).tri;
     v = structIn.regions.(curRegion{:}).vert;
     e = structIn.regions.(curRegion{:}).electrodes;
-    c = colors(f,:);
 
-
+    if size(colors,1) == 1
+        c = colors;
+    else
+        c = colors(f,:);
+    end
 
     
     ax = gca;

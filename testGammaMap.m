@@ -25,9 +25,9 @@ leftHRec = pooledData.electrodeCoordinates(1,:) < 0;
 rightHRec = pooledData.electrodeCoordinates(1,:) > 0;
 
 % get logical array for significant responses
-alpha = calculateAlphaThreshold(pooledData.gammaP, 0.0001);
-alpha2 = calculateAlphaThreshold(pooledData.pValue,0.0001);
-significant = (pooledData.gammaP < alpha) & (pooledData.pValue > alpha2) & (abs(pooledData.gammaRho) > .3);
+
+alpha2 = calculateAlphaThreshold(pooledData.gammaP,0.0001);
+significant = (pooledData.gammaP < alpha2) & (abs(pooledData.gammaRho) > 0.1);
 
 stimulated = logical(pooledData.stimulatedChannels);
 
@@ -38,21 +38,22 @@ condition.PStim = contains([pooledData.stimulatedRegion{:}],cingulateNamesSimple
 
 brainFieldnames = fieldnames(templateBrain.regions);
 
-sigChannelsIDX = find(pooledData.gammaP < alpha);
-stimRegion = [pooledData.stimulatedRegion{sigChannelsIDX}]; 
+
+stimRegion = [pooledData.stimulatedRegion{significant}]; 
 
 %index groups for each subregion of the cingulate
-idx.lACC = find(ismember(stimRegion,leftACC));
-idx.rACC = find(ismember(stimRegion,rightACC));
-idx.lMCC = find(ismember(stimRegion,leftMCC));
-idx.rMCC = find(ismember(stimRegion,rightMCC));
-idx.lPCC = find(ismember(stimRegion,leftPCC));
-idx.rPCC = find(ismember(stimRegion,rightPCC));
+idx.lACC = ismember([pooledData.stimulatedRegion{:}],leftACC);
+idx.rACC = ismember([pooledData.stimulatedRegion{:}],rightACC);
+idx.lMCC = ismember([pooledData.stimulatedRegion{:}],leftMCC);
+idx.rMCC = ismember([pooledData.stimulatedRegion{:}],rightMCC);
+idx.lPCC = ismember([pooledData.stimulatedRegion{:}],leftPCC);
+idx.rPCC = ismember([pooledData.stimulatedRegion{:}],rightPCC);
 
 %initialize colors
 aColor = getColors('lush lilac');
 mColor = getColors('celadon porcelain');
 pColor = getColors('lago blue');
+
 
 
 
@@ -216,3 +217,79 @@ figure('Position',[281          32        3060        1260]);
 hipAmygColors = pColors(hipAmygBool,:);
 [surfaceHA] = plotProjectedRegionsOnly(hipAmygTemplate,hipAmygColors);
 view([-180.8 73.9])
+
+
+%% create 3d wiring diagram
+
+figure();
+surf = plotProjectedRegionsOnly(templateBrain,[.3,.3,.3]);
+for i = 1:length(surf)
+surf(i).FaceAlpha = .05;
+end
+hold on
+
+fns  = fieldnames(idx);
+subjects = unique(pooledData.subjectID);
+
+ 
+    for i = length(fns)
+
+
+    if i <= 2
+        curColor = aColor;
+
+    elseif i >=3 || i <= 4
+        curColor = mColor;
+
+    elseif i >=5 || i <= 6
+        curColor = pColor;
+
+    end
+
+    curData = idx.(fns{i}) & significant;
+
+    curIDX = find(curData);
+
+    for ii = 1:length(curIDX)
+temp = curIDX(ii);
+% Extract coordinates of the two points
+x_start = pooledData.electrodeCoordinates(1, temp);
+y_start = pooledData.electrodeCoordinates(2, temp);
+z_start = pooledData.electrodeCoordinates(3, temp);
+
+x_end = pooledData.stimulatedChannelCoord(1, temp);
+y_end = pooledData.stimulatedChannelCoord(2, temp);
+z_end = pooledData.stimulatedChannelCoord(3, temp);
+
+% Calculate the midpoint with jitter
+jitter_factor = 0.2; % Adjust this to control the height of the parabola
+mid_x = (x_start + x_end) / 2;
+mid_y = (y_start + y_end) / 2;
+mid_z = (z_start + z_end) / 2;
+
+% Compute jitter based on the distance between the two points
+line_length = norm([x_end - x_start, y_end - y_start, z_end - z_start]);
+jitter = jitter_factor * line_length;
+mid_z = mid_z + jitter; % Add jitter in the z-direction for the parabolic effect
+
+% Combine points
+points = [x_start, y_start, z_start; mid_x, mid_y, mid_z; x_end, y_end, z_end];
+
+% Generate the parameter for interpolation
+t = [0, 0.5, 1]; % Parameter values for the three points
+tt = linspace(0, 1, 100); % Fine interpolation for smooth curve
+
+% Perform spline interpolation for each dimension
+x_interp = spline(t, points(:, 1), tt);
+y_interp = spline(t, points(:, 2), tt);
+z_interp = spline(t, points(:, 3), tt);
+
+% Plot the result
+plot3(x_interp, y_interp, z_interp, 'Color', [curColor, 0.3], 'LineWidth', .7); % Interpolated curve
+hold on;
+
+
+
+
+    end
+    end

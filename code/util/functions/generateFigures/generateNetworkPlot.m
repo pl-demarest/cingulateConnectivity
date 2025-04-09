@@ -2,6 +2,7 @@ function generateNetworkPlot(outerCircleTable,innerCircleTable, dataStruct, data
     % plotCircularNetwork - Creates a circular divergent network figure
     %
     % Inputs:
+    %todo- outerwidth, alpha range, linewidth range
     %   innerCircleTable - Table containing inner circle coordinates (x, y)
     %   outerCircleTable - Table containing outer circle coordinates (x, y)
     %                      and convergence point coordinates.
@@ -45,8 +46,8 @@ function generateNetworkPlot(outerCircleTable,innerCircleTable, dataStruct, data
 
     data = dataStruct.(dataFieldName);
     data(~inclusionArray) = nan;
-    dataLine = normalizeToRange(data,1.5,3.2);
-    dataAlpha = normalizeToRange(data,.4,.7);
+    dataLine = normalizeToRange(data,1.5, 3.2);
+    dataAlpha = normalizeToRange(data,.3,.6);
 
     figure('position',[758          41        1697        1228]);
     % Initialize counters for offset style
@@ -213,9 +214,6 @@ for h = flipIndex
     end
 end
 
-axis equal; % Ensure the circle appears correctly
-hold off;
-
     %% plot the inner points
 
     stimulated = unique(innerCircleTable.Class);
@@ -249,6 +247,36 @@ hold off;
 
 
     %% plot the connections between the inner points
+
+    stimulated = unique(innerCircleTable.Class);
+    for h = [0,1]
+
+        if h == 0
+            stimulated = unique(innerCircleTable.Class);
+        elseif h == 1
+            stimulated = flip(unique(innerCircleTable.Class));
+        end
+    for i = 1:length(stimulated)
+        
+        curStimLoc = stimulated(i);
+        
+        if strcmp(curStimLoc,'ACC')
+            curColor = getColors('lush lilac');
+        elseif strcmp(curStimLoc,'MCC')
+            curColor = getColors('celadon porcelain');
+        elseif strcmp(curStimLoc,'PCC')
+            curColor = getColors('lago blue');
+        end
+
+        regions = ismember(innerCircleTable.Class,curStimLoc) & (innerCircleTable.rHemisphere == h);
+        curInnerX = mean(innerCircleTable.xCoord(regions));
+        curInnerY = mean(innerCircleTable.yCoord(regions));
+
+       plot(curInnerX, curInnerY, 'o', 'MarkerFaceColor', curColor,'MarkerEdgeColor','k','MarkerSize',20);
+
+    end
+    end
+
 
     % Adjust axis for a better circular view
     axis equal

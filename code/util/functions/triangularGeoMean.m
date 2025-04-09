@@ -5,7 +5,7 @@ function [mappedColor, mappedCoord] = triangularGeoMean(values,figureFlag,vertex
 
 
 % Define vertices of the triangle
-vertices = [0 0; 1 0; 0.5 1];
+vertices = [0 0; 1 0; 0.5 (sqrt(3)/2)];
 faces = [1 2 3];
 
 

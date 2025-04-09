@@ -1,4 +1,4 @@
-function [correlations, lag, maxCorr, maxLag] = spearmanCrossCorr(x, y, lagTime)
+function [correlations, lag, maxCorr, maxLag, maxAbsCorr, maxAbsLag] = spearmanCrossCorr(x, y, lagTime)
     % Precompute lengths and shifts
     dataLength = length(x);
     backwardShift = dataLength-1:-lagTime:0;
@@ -12,24 +12,23 @@ function [correlations, lag, maxCorr, maxLag] = spearmanCrossCorr(x, y, lagTime)
     % Calculate correlations for each shift
     parfor idx = 1:length(shifts)
         shift = shifts(idx);
-        if shift < 0
-            % Negative shift: circular shift backward
-            newX = circshift(x, shift);
-        elseif shift > 0
-            % Positive shift: circular shift forward
-            newX = circshift(x, shift);
-        else
-            % No shift
-            newX = x;
-        end
-        correlations(idx) = (corr(newX, y, 'Type', 'Spearman'))^2;
+        % circshift works for both positive and negative shifts
+        newX = circshift(x, shift);
+        % Compute Spearman correlation without squaring
+        correlations(idx) = corr(newX, y, 'Type', 'Spearman');
         lag(idx) = shift;
     end
     
     % Limit analysis to half the data length in both directions
     lagWindowIDX = (lag >= -dataLength/2) & (lag <= dataLength/2);
-    maxCorr = max(correlations(lagWindowIDX));
-    maxLagIDX = (correlations == maxCorr) & lagWindowIDX;
-    maxLagAll = lag(maxLagIDX);
-    maxLag = maxLagAll(1);
+    
+    % Find max (signed) correlation and its lag
+    [maxCorr, idxMax] = max(correlations(lagWindowIDX));
+    lagWindow = lag(lagWindowIDX);
+    maxLag = lagWindow(idxMax);
+    
+    % Find max absolute correlation and its lag
+    absCorrelations = abs(correlations);
+    [maxAbsCorr, idxMaxAbs] = max(absCorrelations(lagWindowIDX));
+    maxAbsLag = lagWindow(idxMaxAbs);
 end

@@ -54,7 +54,8 @@ uniqueWMChans = unique(whiteMatterChans,'rows','stable');
 % identify channels in the cingulate cortex, and return a unique list of
 % channels in the cingulate cortex
 cingulateChansIDX = contains([pooledData.electrodeRegionLabel{:}],cingulateNamesSimple);
-cingulateChans = pooledData.electrodeCoordinates(:,cingulateChansIDX)';
+cingulateNonStim = cingulateChansIDX & ~stimIDX;
+cingulateChans = pooledData.electrodeCoordinates(:,cingulateNonStim)';
 uniqueCingulateChans = unique(cingulateChans,'rows','stable');
 
 % identify and return all other channels
@@ -356,7 +357,7 @@ fs = 2000; % Hz, samples per second
 timeVector = (0:length_samples-1) / fs;
 timeVector = (timeVector - max(timeVector)/2)*1000;
 
-currentRegion = regionOrdered(8);
+currentRegion = regionOrdered(7);
 currentListIDX = contains(sortedTable.Class,currentRegion);
 currentList = sortedTable.Name(currentListIDX);
 findChannels = contains([pooledData.electrodeRegionLabel{:}],currentList);
@@ -443,7 +444,7 @@ fs = 2000; % Hz, samples per second
 timeVector = (0:length_samples-1) / fs;
 timeVector = (timeVector - max(timeVector)/2)*1000;
 
-currentRegion = regionOrdered(10);
+currentRegion = regionOrdered(9);
 currentListIDX = contains(sortedTable.Class,currentRegion);
 currentList = sortedTable.Name(currentListIDX);
 findChannels = contains([pooledData.electrodeRegionLabel{:}],currentList);

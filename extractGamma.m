@@ -27,7 +27,7 @@ if ~isfile(saveGammaFile)
     runAnalysis = load([hilbertDirectory 'hilbertSEEG_' currentFile],'broadbandGamma');
 
     baselineWindow = 1:.9*sr;
-    taskWindow = .95*sr:(.95*sr + (0.95*sr));
+    taskWindow = 1.05*sr:((0.95*sr)*2); %ensure stimulation and n1 do not affect gamma
     
     gammaStruct = getGammaFeatures(runAnalysis,sr,baselineWindow,taskWindow);
 
