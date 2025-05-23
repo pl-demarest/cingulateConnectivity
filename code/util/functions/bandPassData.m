@@ -1,5 +1,10 @@
 function [bandPassedData] = bandPassData(signal,lowerFreq,upperFreq,order,samplingRate)
 
+%set input to be chan x signal
+if size(signal,1) > size(signal,2)
+    signal = signal';
+end
+
 HP_cutoff = lowerFreq;
 LP_cutoff = upperFreq;
 Type      = 'bandpass';
@@ -7,7 +12,7 @@ Type      = 'bandpass';
 [sos,g] = tf2sos(b0_A,a0_A);
 
 
-%fvtool(b0_A, a0_A)
+fvtool(b0_A, a0_A)
 
 for channel = 1:size(signal,1)
     bandPassedData(channel,:) = filtfilt(sos,g,signal(channel,:));

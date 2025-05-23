@@ -26,26 +26,14 @@ switch(schemeName)
 
     case 'rainbow matrix'
     colors = [
-    143, 82, 182; % Original Purple
-    82, 182, 143; % Green
-    182, 143, 82; % Orange
-    182, 82, 143; % Pink
-    82, 143, 182; % Sky Blue
-    69, 185, 214; % Original Cyan/Teal
-    185, 69, 214; % Magenta
-    214, 185, 69; % Gold/Yellow
-    185, 214, 69; % Lime Green
-    214, 69, 185; % Hot Pink
-    255, 0, 0;    % Pure Red
-    0, 255, 0;    % Pure Green
-    0, 0, 255;    % Pure Blue
-    255, 255, 0;  % Yellow
-    0, 255, 255;  % Aqua
-    255, 0, 255;  % Magenta
-    128, 0, 0;    % Dark Red
-    0, 128, 0;    % Dark Green
-    0, 0, 128;    % Dark Blue
-    128, 128, 0   % Olive
+208,108,103;
+208,187,103;
+150,208,103;
+103,208,134;
+103,203,208;
+103,124,208;
+160,103,208;
+208,103,177;
     ]./255;
 
     case 'lago blue'

@@ -42,5 +42,6 @@ out.beta = epochData(bH,stimulusCodes,stimulusConditions,timeBefore,timeAfter,sa
 out.lowGamma = epochData(lgH,stimulusCodes,stimulusConditions,timeBefore,timeAfter,samplingRate);
 out.broadbandGamma = epochData(bgH,stimulusCodes,stimulusConditions,timeBefore,timeAfter,samplingRate);
 out.broadbandLF = epochData(blfH,stimulusCodes,stimulusConditions,timeBefore,timeAfter,samplingRate);
+out.broadbandLFSignal = epochData(broadBandLF,stimulusCodes,stimulusConditions,timeBefore,timeAfter,samplingRate);
 
 end

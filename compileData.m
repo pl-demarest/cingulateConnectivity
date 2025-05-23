@@ -17,8 +17,8 @@ leftPCC = {'ctx_lh_G_cingul-Post-dorsal','ctx_lh_G_cingul-Post-ventral','wm_lh_G
 
 for i = 1:dataLength
 
-    responseStartIDX = pooledData.responseStartTime(i);
-    responseEndIDX = pooledData.responseEndTime(i);
+    responseStartIDX = pooledData.responseStartTimeIDX(i);
+    responseEndIDX = pooledData.responseEndTimeIDX(i);
     currentStimChan = pooledData.stimulatedRegion{i};
 
     
@@ -111,8 +111,8 @@ save('data/compiledData.mat','data','-mat','-v7.3')
 
 for i = 1:dataLength
 
-    responseStartIDX = pooledData.responseStartTime(i);
-    responseEndIDX = pooledData.responseEndTime(i);
+    responseStartIDX = pooledData.responseStartTimeIDX(i);
+    responseEndIDX = pooledData.responseEndTimeIDX(i);
     currentStimChan = pooledData.stimulatedRegion{i};
 
     

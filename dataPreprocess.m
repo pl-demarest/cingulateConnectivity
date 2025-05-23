@@ -57,6 +57,7 @@ for file = 1:length(filesOut)
     
     save([saveDirectory currentSubject '_' currentFile '_' namesOut{file} '.mat'],'-struct','data')
     clear data
+
     save([saveHilbert 'hilbertSEEG_' currentSubject '_' currentFile '_' namesOut{file} '.mat'],'-struct','hilbertSeeg')
     save([saveHilbert 'hilbertEEG_' currentSubject '_' currentFile '_' namesOut{file} '.mat'],'-struct','hilbertEeg')
     clear hilbert

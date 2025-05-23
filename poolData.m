@@ -70,6 +70,8 @@ responseDuration = [];
 responseLatency = [];
 peakMagnitude = [];
 peakMagLatency = [];
+responseStartIDX = [];
+responseEndIDX = [];
 
 meanGamma = [];
 stdGamma = [];
@@ -178,13 +180,15 @@ n2Prom = [n2Prom, responseStruct.n2Prominence];
 duration = [duration, responseStruct.responseDuration];
 n1ratio = [n1ratio,     responseStruct.n1PeakToBaseline];
 
-latencies = phase.magnitudeStart - 1900;
+latencies = phase.magnitudeStart;
 
 angleChars = [angleChars, phase.angleCharacterization'];
 angleCharTime = [angleCharTime, phase.angleCharacterizationTime'];
 angle = [angle, phase.angle'];
 magnitude = [magnitude, phase.magnitude'];
 responseStart = [responseStart, phase.magnitudeStart];
+responseStartIDX = [responseStartIDX, phase.startIDX];
+responseEndIDX = [responseEndIDX,phase.endIDX];
 responseEnd = [responseEnd, phase.magnitudeStop];
 responseDuration = [responseDuration, phase.magnitudeDuration];
 responseLatency = [responseLatency, latencies];
@@ -252,6 +256,8 @@ pooledData.responseAngles = angle;
 pooledData.responseMagnitude = magnitude;
 pooledData.responseStartTime = responseStart;
 pooledData.responseEndTime = responseEnd;
+pooledData.responseStartTimeIDX = responseStartIDX;
+pooledData.responseEndTimeIDX = responseEndIDX;
 pooledData.responseDurationByAbruptChanges = responseDuration;
 pooledData.responseLatency = responseLatency;
 pooledData.responsePeakMagnitude = peakMagnitude;

@@ -5,8 +5,6 @@ function [signal] = smallLaplace(signal_orig,ch_locations,distance,excluded_ch,e
 % excluded_ch = []
 % don't define exclusion radius
 
-%SMALL_LAPLACE Summary of this function goes here
-%   Detailed explanation goes here
 signal=signal_orig;
 if(exist('exclusion_radius','var'))
     excluded_ch=[excluded_ch find(pdist2(ch_locations,ch_locations(excluded_ch(1),:)) < exclusion_radius)'];

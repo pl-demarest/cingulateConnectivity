@@ -636,7 +636,7 @@ for i = 1:length(templateBrain.regionList)
 end
 
 %%
-%normalize each row so that maximum alpha can be assigned as between 0.2 and .7
+%normalize each row so that maximum alpha can be assigned
 aAlphas = effectSizes(:,1);
 aNan = isnan(aAlphas); %store nan values to adjust to grey
 storeZeros = logical(storeZeros);
@@ -648,39 +648,32 @@ aColors(noCover,:) = 0.4;
 aColors(storeZeros,:) = 0.4;
 
 %First Plot everything for ACC
-figure('Position',[281          32        3060        1260]);
+figure('Position',[38         188        3397         946]);
+subplot(1,5,1)
 [surface] = plotProjectedRegionsOnly(templateBrainLeft,aColors);
 view([270,0])
 
-saveas(gcf,[saveDir 'connectivityACCCortex1.svg'])
-saveas(gcf,[saveDir 'connectivityACCCortex1.png'])
 
-figure('Position',[281          32        3060        1260]);
+subplot(1,5,2);
 [surface] = plotProjectedRegionsOnly(templateBrainRight,aColors);
 view([270,0])
-saveas(gcf,[saveDir 'connectivityACCCortex2.svg'])
-saveas(gcf,[saveDir 'connectivityACCCortex2.png'])
 
-figure('Position',[281          32        3060        1260]);
+subplot(1,5,3);
 insulaColors = aColors(insulaBool,:);
 [surfaceInsula] = plotProjectedRegionsOnly(insulaTemplateLeft,insulaColors);
 view([270,0])
-saveas(gcf,[saveDir 'connectivityACCInsula.svg'])
-saveas(gcf,[saveDir 'connectivityACCInsula.png'])
 
-figure('Position',[281          32        3060        1260]);
+subplot(1,5,4);
 hipAmygColors = aColors(hipAmygBool,:);
 [surfaceHA] = plotProjectedRegionsOnly(hipAmygTemplate,hipAmygColors);
 view([-176.4 -90.0])
-saveas(gcf,[saveDir 'connectivityACCHip1.svg'])
-saveas(gcf,[saveDir 'connectivityACCHip1.png'])
 
-figure('Position',[281          32        3060        1260]);
+subplot(1,5,5);
 hipAmygColors = aColors(hipAmygBool,:);
 [surfaceHA] = plotProjectedRegionsOnly(hipAmygTemplate,hipAmygColors);
 view([-180.8 73.9])
-saveas(gcf,[saveDir 'connectivityACCHip2.svg'])
-saveas(gcf,[saveDir 'connectivityACCHip2.png'])
+
+saveas(gcf,[saveDir 'connectivityACC.png'])
 
 figure();
 ax = axes;
@@ -700,39 +693,31 @@ mColors(mNan,:) = 0.8;
 mColors(noCover,:) = 0.4;
 mColors(storeZeros,:) = 0.4;
 
-figure('Position',[281          32        3060        1260]);
+figure('Position',[38         188        3397         946]);
+subplot(1,5,1)
 [surface] = plotProjectedRegionsOnly(templateBrainLeft,mColors);
 view([270,0])
-saveas(gcf,[saveDir 'connectivityMCCCortex1.svg'])
-saveas(gcf,[saveDir 'connectivityMCCCortex1.png'])
 
-figure('Position',[281          32        3060        1260]);
+subplot(1,5,2);
 [surface] = plotProjectedRegionsOnly(templateBrainRight,mColors);
 view([270,0])
-saveas(gcf,[saveDir 'connectivityMCCCortex2.svg'])
-saveas(gcf,[saveDir 'connectivityMCCCortex2.png'])
 
-figure('Position',[281          32        3060        1260]);
+subplot(1,5,3);
 insulmColors = mColors(insulaBool,:);
 [surfaceInsula] = plotProjectedRegionsOnly(insulaTemplateLeft,insulmColors);
 view([270,0])
-saveas(gcf,[saveDir 'connectivityMCCInsula.svg'])
-saveas(gcf,[saveDir 'connectivityMCCInsula.png'])
 
-figure('Position',[281          32        3060        1260]);
+subplot(1,5,4);
 hipAmygColors = mColors(hipAmygBool,:);
 [surfaceHA] = plotProjectedRegionsOnly(hipAmygTemplate,hipAmygColors);
 view([-176.4 -90.0])
 
-saveas(gcf,[saveDir 'connectivityMCCHip1.svg'])
-saveas(gcf,[saveDir 'connectivityMCCHip1.png'])
-
-figure('Position',[281          32        3060        1260]);
+subplot(1,5,5);
 hipAmygColors = mColors(hipAmygBool,:);
 [surfaceHA] = plotProjectedRegionsOnly(hipAmygTemplate,hipAmygColors);
 view([-180.8 73.9])
-saveas(gcf,[saveDir 'connectivityMCCHip2.svg'])
-saveas(gcf,[saveDir 'connectivityMCCHip2.png'])
+
+saveas(gcf,[saveDir 'connectivityMCC.png'])
 
 figure();
 ax = axes;
@@ -752,38 +737,30 @@ pColors(pNan,:) = 0.8;
 pColors(noCover,:) = 0.4;
 pColors(storeZeros,:) = 0.4;
 
-figure('Position',[281          32        3060        1260]);
+figure('Position',[38         188        3397         946]);
+subplot(1,5,1)
 [surface] = plotProjectedRegionsOnly(templateBrainLeft,pColors);
 view([270,0])
-saveas(gcf,[saveDir 'connectivityPCCCortex1.svg'])
-saveas(gcf,[saveDir 'connectivityPCCCortex1.png'])
 
-figure('Position',[281          32        3060        1260]);
+subplot(1,5,2);
 [surface] = plotProjectedRegionsOnly(templateBrainRight,pColors);
 view([270,0])
-saveas(gcf,[saveDir 'connectivityPCCCortex2.svg'])
-saveas(gcf,[saveDir 'connectivityPCCCortex2.png'])
 
-figure('Position',[281          32        3060        1260]);
+subplot(1,5,3);
 insulpColors = pColors(insulaBool,:);
 [surfaceInsula] = plotProjectedRegionsOnly(insulaTemplateLeft,insulpColors);
 view([270,0])
-saveas(gcf,[saveDir 'connectivityPCCInsula.svg'])
-saveas(gcf,[saveDir 'connectivityPCCInsula.png'])
 
-figure('Position',[281          32        3060        1260]);
+subplot(1,5,4);
 hipAmygColors = pColors(hipAmygBool,:);
 [surfaceHA] = plotProjectedRegionsOnly(hipAmygTemplate,hipAmygColors);
 view([-176.4 -90.0])
-saveas(gcf,[saveDir 'connectivityPCCHip1.svg'])
-saveas(gcf,[saveDir 'connectivityPCCHip1.png'])
 
-figure('Position',[281          32        3060        1260]);
+subplot(1,5,5);
 hipAmygColors = pColors(hipAmygBool,:);
 [surfaceHA] = plotProjectedRegionsOnly(hipAmygTemplate,hipAmygColors);
 view([-180.8 73.9])
-saveas(gcf,[saveDir 'connectivityPCCHip2.svg'])
-saveas(gcf,[saveDir 'connectivityPCCHip2.png'])
+saveas(gcf,[saveDir 'connectivityPCC.png'])
 
 figure();
 ax = axes;

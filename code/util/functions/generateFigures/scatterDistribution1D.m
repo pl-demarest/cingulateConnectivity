@@ -1,4 +1,4 @@
-function scatterDistribution1D(currentData,data,offsetAmount,alpha,colors)
+function scatterDistribution1D(currentData,data,offsetAmount,alpha,markerSize,colors)
 %use this function to visualize a dataset "data" broken down into subsets
 %"currentData in a single dimension.
 
@@ -20,24 +20,26 @@ f = (f1- min(f1)) / ( max(f1) - min(f1) );
 histogramOffset = f + offsetAmount;
 
 % Plotting
+if nargin < 2 || isempty(data)
+    % If data is empty or not provided, use currentData properties
+    plotRange = [min(currentData)-.5, max(currentData)+.5];
+else
+    plotRange = [min(data)-.5, max(data)+.5];
+end
 
-line = plot([min(data)-.5, max(data)+.5], [0, 0], 'k'); % number line
+line = plot(plotRange, [0, 0], 'k'); % number line
 hold on
 
-
-points = scatter(currentData, y, 40, 'o', 'filled','MarkerEdgeColor','none','MarkerFaceColor',colors,'YJitter','density','YJitterWidth',0.3); % plot data with random offset
+points = scatter(currentData, y, markerSize, 'o', 'filled','MarkerEdgeColor','none','MarkerFaceColor',colors,'MarkerFaceAlpha',0.5, 'YJitter','density','YJitterWidth',0.3); % plot data with random offset
 hold on;
 
 % Create offset line y-values
 offsetY = ones(1,length(histogramOffset)) * offsetAmount;
 
 % Fill the area between histogram and offset line
-
 fillAreaX = [xi, fliplr(xi)];  % Go forward in x, then reverse back
 fillAreaY = [histogramOffset, fliplr(offsetY)];  % Upper boundary first, then reverse back along lower boundary
 fill(fillAreaX, fillAreaY, colors, 'FaceAlpha', alpha, 'EdgeColor', 'none');
-
-
 
 end
 
