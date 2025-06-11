@@ -114,6 +114,7 @@ else
 end
 
 [~,~,Colors] = electrodeEffectSizes(Alphas,curMap,1.5,4,[0.8,0.8,0.8]);
+Colors = mapEffectSizesToColors(Alphas, curMap, 'to range', [0 1]);
 
 Colors(Nan,:) = 0.4;
 Colors(noCover,:) = 0.4;
@@ -149,8 +150,15 @@ colormap(curMap)
 text(.5,.5,num2str(max(Alphas)),'Units','normalized')
 axis off
 saveas(gcf,[saveDir conditionNames{c} '_percentSignificantCohDLegend.svg'])
+
 end
 
+saveResults.regionNames = templateBrain.regionList;
+saveResults.percentageSignificantACC = percentageSig(1,:);
+saveResults.percentageSignificantMCC = percentageSig(2,:);
+saveResults.percentageSignificantPCC = percentageSig(3,:);
+appendLog(['Supp Fig 1 Sig. Coherence'], [': percentage of significantly coherent responses in contacts for each region' ], saveResults)
+clear saveResults;
 
 %% % significant responses RMS
 
@@ -232,3 +240,10 @@ axis off
 saveas(gcf,[saveDir conditionNames{c} '_percentSignificantRMSALegend.svg'])
 
 end
+
+saveResults.regionNames = templateBrain.regionList;
+saveResults.percentageSignificantACC = percentageSig(1,:);
+saveResults.percentageSignificantMCC = percentageSig(2,:);
+saveResults.percentageSignificantPCC = percentageSig(3,:);
+appendLog('Supp Fig 1 Sig. RMS', [': percentage of significant responses by magnitude in contacts for each region' ], saveResults)
+clear saveResults;

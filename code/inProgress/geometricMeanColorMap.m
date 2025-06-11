@@ -1,4 +1,4 @@
-function [color, coordinate]
+function [color, coordinate] = geometricMeanColorMap(values, figureFlag, vertexColors)
 
 
 % Define vertices of the triangle

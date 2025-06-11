@@ -10,6 +10,15 @@ load('data/pooledBrain.mat');
 pooledData = load('data/pooledData.mat');
 saveDir = 'figures/main/figure1/dependencies/';
 mkdir(saveDir);
+
+%initialize a log file to document analysis and corresponding statistics:
+
+logFile = fopen('data/analysisLog.txt', 'w');
+fprintf(logFile, 'Analysis Log\n');
+fprintf(logFile, 'Initialized on: %s\n', datestr(now));
+fprintf(logFile, '=====================\n\n');
+fclose(logFile);
+
 %% Initialize Variables
 % identify datapoints of sitmulating channels
 stimIDX = pooledData.stimulatedChannels == 1;
@@ -180,11 +189,16 @@ for i = 1:13
     hold on
     b.EdgeColor = 'none';
     b.FaceColor = [countTable.Var3(i), countTable.Var4(i), countTable.Var5(i)];
-
+    
 end
 box off
 saveas(gcf,[saveDir '_channelCount.svg'])
 saveas(gcf,[saveDir '_channelCount.png'])
+
+saveResults.regionOrdered = regionOrdered;
+saveResults.channelCounts = chanCount;
+appendLog('Figure 1b', 'number of channels in each major brain region', saveResults)
+clear saveResults;
 
 %% FIGURE 1c%%
 
@@ -259,6 +273,11 @@ box off
 
 saveas(gcf,[saveDir '_CCStimCount.svg'])
 saveas(gcf,[saveDir '_CCStimCount.png'])
+
+saveResults.stimConditions = {'Left ACC', 'Left MCC', 'Left PCC', 'Right ACC', 'Right MCC', 'Right PCC'};
+saveResults.stimPercentages = compiled(:);
+appendLog('Figure 1c', 'percentage of channels in each stimulation condition', saveResults)
+clear saveResults;
 
 %% plot exemplar CCEPs from OFC
 

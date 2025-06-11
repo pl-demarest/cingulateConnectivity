@@ -342,6 +342,14 @@ for i = 1:length(templateBrain.regionList)
 
 end
 
+saveResults.regions = templateBrain.regionList;
+saveResults.ACCCoherence = effectSizes(:,1);
+saveResults.MCCCoherence = effectSizes(:,2);
+saveResults.PCCCoherence = effectSizes(:,3);
+
+appendLog('Sup Fig 3 RMS Across Conditions', 'average RMS across conditions', saveResults)
+clear saveResults;
+
 %%
 %normalize each row so that maximum alpha can be assigned as between 0.2 and .7
 aAlphas = effectSizes(:,1);

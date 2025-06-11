@@ -166,6 +166,10 @@ box off
 saveas(gcf,[saveDir conditionNames{c} '_ResponseLatencyDistributionRegions.svg'])
 end
 
+saveResults.regionLabels = brainFieldnames;
+saveResults.ACCLatency = latency(1,:);
+saveResults.MCCLatency = latency(2,:);
+saveResults.PCCLatency = latency(3,:);
 
 %% % Response DUration
 
@@ -258,6 +262,11 @@ box off
 saveas(gcf,[saveDir conditionNames{c} '_ResponseDurationDistributionRegions.svg'])
 
 end
+saveResults.ACCDuration = duration(1,:);
+saveResults.MCCDuration = duration(2,:);
+saveResults.PCCDuration = duration(3,:);
+
+appendLog('Figure 5: response latency', 'response latencies for each region', saveResults)
 
 %% create supplemental figure outlining response detection method
 

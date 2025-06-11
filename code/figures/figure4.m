@@ -447,6 +447,12 @@ p_mcc_pcc = ranksum(copheneticData{2}, copheneticData{3});
 text(0.1, y_pos, ['MCC vs PCC: p = ' num2str(p_mcc_pcc)], 'Units', 'normalized');
 box off;
 
+saveResults.conditions = {'ACC', 'MCC', 'PCC'};
+saveResults.meanCopeneticDistances = [mean(copheneticData{1}),mean(copheneticData{2}),mean(copheneticData{3})];
+saveResults.stdCopeneticDistances = [std(copheneticData{1}),std(copheneticData{2}),std(copheneticData{3})];
+saveResults.comparisonLabels = {'ACC vs MCC','ACC vs PCC','MCC vs PCC'};
+saveResults.comparisonCopheneticDistance = [p_acc_mcc,p_acc_pcc,p_mcc_pcc];
+
 % Subplot 2: Average Correlations Swarm Plot
 subplot(1,2,2);
 
@@ -494,6 +500,18 @@ ylabel('Average Correlation');
 title('Average Correlations by Condition');
 box off;
 saveas(gcf,[saveDir 'copheneticEntropyAverageCorrelations.svg'])
+
+
+
+saveResults.meanCorrelations = [nanmean(correlationData{1}),nanmean(correlationData{2}),nanmean(correlationData{3})];
+[aL, aU] = bootstrapCI(correlationData{1}); %get upper and lower confidence interval values
+[mL, mU] = bootstrapCI(correlationData{2});
+[pL, pU] = bootstrapCI(correlationData{3});
+saveResults.ciCorrelationsLower = [aL, mL, pL];
+saveResults.ciCorrelationsUpper = [aU, mU, pU];
+saveResults.comparisonCorrelations = [p_acc_mcc,p_acc_pcc,p_mcc_pcc];
+
+appendLog('Fig 4', 'hierarchical clustering, comparisons of cophenetic distances and of correlations between regions', saveResults)
 
 %% Prepare brain models for visualization
 % Generate brain model without hippocampus/amygdala
@@ -731,3 +749,33 @@ for condIdx = 1:length(conditions)
 end
 
 close all
+
+%% save cluster regions to data log:
+clear saveResults
+saveResults.ACCCluster1 = interChannelCoherence.ACC.clusterRegionNames{1,1};
+saveResults.ACCCluster2 = interChannelCoherence.ACC.clusterRegionNames{3,1};
+saveResults.ACCCluster3 = interChannelCoherence.ACC.clusterRegionNames{4,1};
+saveResults.ACCCluster4 = interChannelCoherence.ACC.clusterRegionNames{5,1};
+saveResults.ACCCluster5 = interChannelCoherence.ACC.clusterRegionNames{9,1};
+saveResults.ACCCluster6 = interChannelCoherence.ACC.clusterRegionNames{10,1};
+saveResults.ACCCluster7 = interChannelCoherence.ACC.clusterRegionNames{11,1};
+saveResults.ACCCluster8 = interChannelCoherence.ACC.clusterRegionNames{13,1};
+
+saveResults.MCCCluster2 = interChannelCoherence.MCC.clusterRegionNames{1,1};
+saveResults.MCCCluster3 = interChannelCoherence.MCC.clusterRegionNames{5,1};
+saveResults.MCCCluster4 = interChannelCoherence.MCC.clusterRegionNames{6,1};
+saveResults.MCCCluster5 = interChannelCoherence.MCC.clusterRegionNames{8,1};
+saveResults.MCCCluster6 = interChannelCoherence.MCC.clusterRegionNames{10,1};
+saveResults.MCCCluster7 = interChannelCoherence.MCC.clusterRegionNames{16,1};
+saveResults.MCCCluster8 = interChannelCoherence.MCC.clusterRegionNames{17,1};
+
+saveResults.PCCCluster2 = interChannelCoherence.PCC.clusterRegionNames{1,1};
+saveResults.PCCCluster3 = interChannelCoherence.PCC.clusterRegionNames{2,1};
+saveResults.PCCCluster4 = interChannelCoherence.PCC.clusterRegionNames{3,1};
+saveResults.PCCCluster5 = interChannelCoherence.PCC.clusterRegionNames{4,1};
+saveResults.PCCCluster6 = interChannelCoherence.PCC.clusterRegionNames{5,1};
+saveResults.PCCCluster7 = interChannelCoherence.PCC.clusterRegionNames{8,1};
+saveResults.PCCCluster8 = interChannelCoherence.PCC.clusterRegionNames{11,1};
+
+
+appendLog('Fig 4-regions in each cluster', 'hierarchical clustering, a list of regions within each cluster for each region', saveResults)

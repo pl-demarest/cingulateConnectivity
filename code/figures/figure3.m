@@ -1,4 +1,4 @@
-%% for  figure components of figure 2
+%% for  figure components of figure 3
 clear
 close all
 addpath(genpath(cd))
@@ -70,6 +70,7 @@ regionColorsCC = [getColors('lush lilac');
     0.2,0.2,0.2];
 
 brainFieldnames = fieldnames(templateBrain.regions);
+
 
 %% --- Step 1: Plot the Original Scatter Plot ---
 figure('Position',[620   144   382   823]);
@@ -754,12 +755,14 @@ saveas(c,[saveDir 'contraLateralizationPlotLegendRed.svg'])
 
 lateralizationTableCohD = getHemiStats(outer, inner,pooledData, 'cohensD', significant);
 
+appendLog('Fig 3 Spatial Profile', 'hemespheric connectivity differences using cohens d', lateralizationTableCohD)
+
 %repeat for RMS regions
 alphaRMS = calculateAlphaThreshold(pooledData.RMSP, 0.0001);
 significantRMS = (pooledData.RMSP < alpha) & (pooledData.RMS > 0);
-
-%%
 lateralizationTableRMS = getHemiStats(outer, inner,pooledData, 'RMS', significantRMS);
+
+appendLog('Fig 3 Spatial Profile-RMS', 'hemespheric connectivity differences using RMS', lateralizationTableRMS)
 
 [a,b,c] = generateNetworkPlotHalfCircle(outer, inner, pooledData, 'RMS', significantRMS,'ipsi','jitter','jitterMagnitude',.02); %'offset',  'offsetStep', 0.005);
 saveas(a,[saveDir 'ipsiLateralizationPlotRMS.svg'])

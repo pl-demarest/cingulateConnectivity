@@ -218,6 +218,11 @@ aa = ranksum(dataToPlot(:,1),dataToPlot(:,2))
 mm = ranksum(dataToPlot(:,3),dataToPlot(:,4))
 pp = ranksum(dataToPlot(:,5),dataToPlot(:,6))
 
+
+saveResults.labels = {'ACC','MCC','PCC'};
+saveResults.comparisonLabels = {'a-m','a-p','m-p','a-a','m-m','p-p'};
+saveResults.meanCohensD = [nanmean(a(:)),nanmean(m(:)),nanmean(p(:))];
+saveResults.comparisonsCohensD = [am,ap,mp,aa,mm,pp];
 %format data for plotting functions
 
 figure('position',[72   805   935   479])
@@ -247,6 +252,11 @@ mp = ranksum(m(:),p(:))
 aa = ranksum(dataToPlot(:,1),dataToPlot(:,2))
 mm = ranksum(dataToPlot(:,3),dataToPlot(:,4))
 pp = ranksum(dataToPlot(:,5),dataToPlot(:,6))
+saveResults.meanVariance = [nanmean(a(:)),nanmean(m(:)),nanmean(p(:))];
+saveResults.comparisonsVariance = [am,ap,mp,aa,mm,pp];
+
+appendLog('Figure 2e Coherence Statistics', 'statistical comparisons between stimulation conditions: coherence and coherence variance', saveResults)
+clear saveResults;
 
 
 %% Figure 2f %%%%%%%%%
@@ -466,7 +476,7 @@ for i = 1:length(templateBrain.regionList)
 
     d = sqrt(sum((coordinates(i,:)-centroid).^2));
     
-    if d <= .08
+    if d <= .08 %within ~5% of the triangle's area
         equalRegionColors(i,:) = getColors('modern orange');
     else
         equalRegionColors(i,:) = [0.8,0.8,0.8];
@@ -628,12 +638,20 @@ for i = 1:length(templateBrain.regionList)
         end
         if sum(condition.MStim & curRegion & ~stimulated) == 0
         storeNoCoverage(i,2) = 1;
+
         end
         if sum(condition.PStim & curRegion & ~stimulated) == 0
         storeNoCoverage(i,3) = 1;
         end
 
 end
+saveResults.regions = templateBrain.regionList;
+saveResults.ACCCoherence = effectSizes(:,1);
+saveResults.MCCCoherence = effectSizes(:,2);
+saveResults.PCCCoherence = effectSizes(:,3);
+
+appendLog('Sup Fig 2 Coherence Across Conditions', 'average cohens d across conditions', saveResults)
+clear saveResults;
 
 %%
 %normalize each row so that maximum alpha can be assigned

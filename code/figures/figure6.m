@@ -1,4 +1,4 @@
-%% for  figure components of figure 2
+%% for  figure components of figure 6
 clear
 close all
 addpath(genpath(cd))

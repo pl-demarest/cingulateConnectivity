@@ -219,10 +219,24 @@ allData(1:size(pccDat,1), 5:6) = pccDat; %acc,mcc
 
 %statistical tests
 
-a = ranksum(allData(:,1),allData(:,2))
-m = ranksum(allData(:,3),allData(:,4))
-p = ranksum(allData(:,5),allData(:,6))
+a = ranksum(allData(:,1),allData(:,2));
+m = ranksum(allData(:,3),allData(:,4));
+p = ranksum(allData(:,5),allData(:,6));
 
+saveResults.comparisonLabels = {'acc: mcc vs pcc', 'mcc: acc vs pcc', 'pcc: acc vs mcc'};
+saveResults.comparisonStats = [a,m,p];
+saveResults.averagesLabels = {'mcc-acc','pcc-acc','acc-mcc','pcc-mcc','acc-pcc','mcc-pcc'};
+saveResults.averageConnectivity = [nanmean(allData(:,1)),nanmean(allData(:,2)),nanmean(allData(:,3)),nanmean(allData(:,4)),nanmean(allData(:,5)),nanmean(allData(:,6))];
+
+%store confidence intervals to save
+
+for i = 1:size(allData,2)
+[ciLower(i), ciUpper(i)]= bootstrapCI(allData(:,i));
+end
+saveResults.ciLower = ciLower;
+saveResults.ciUpper = ciUpper;
+appendLog('Supp Fig 2 Inter-cingulate connectivity', 'statistical comparisons of each cingulate subregion to each other subregions using coherence', saveResults)
+clear saveResults;
 
 dataVec = [];    % To store all numeric data
 groupVec = [];   % To store corresponding integer group labels
