@@ -407,7 +407,7 @@ for condIdx = 1:length(conditions)
     interChannelCoherence.(conditionName).regionLabels = labels_filtered;
 end
 
-%% Create visualization of cophenetic entropy and average correlations
+%% Create visualization of cophenetic distance and average correlations
 figure('Name', 'Tree Entropy and Average Correlations', 'Position', [100, 100, 1200, 500]);
 
 % Store data for each condition for statistical comparison
@@ -510,6 +510,7 @@ saveResults.meanCorrelations = [nanmean(correlationData{1}),nanmean(correlationD
 saveResults.ciCorrelationsLower = [aL, mL, pL];
 saveResults.ciCorrelationsUpper = [aU, mU, pU];
 saveResults.comparisonCorrelations = [p_acc_mcc,p_acc_pcc,p_mcc_pcc];
+saveResults.copheneticEntropy = [interChannelCoherence.ACC.copheneticEntropy, interChannelCoherence.MCC.copheneticEntropy, interChannelCoherence.PCC.copheneticEntropy];
 
 appendLog('Fig 4', 'hierarchical clustering, comparisons of cophenetic distances and of correlations between regions', saveResults)
 
@@ -752,30 +753,39 @@ close all
 
 %% save cluster regions to data log:
 clear saveResults
-saveResults.ACCCluster1 = interChannelCoherence.ACC.clusterRegionNames{1,1};
-saveResults.ACCCluster2 = interChannelCoherence.ACC.clusterRegionNames{3,1};
-saveResults.ACCCluster3 = interChannelCoherence.ACC.clusterRegionNames{4,1};
-saveResults.ACCCluster4 = interChannelCoherence.ACC.clusterRegionNames{5,1};
-saveResults.ACCCluster5 = interChannelCoherence.ACC.clusterRegionNames{9,1};
-saveResults.ACCCluster6 = interChannelCoherence.ACC.clusterRegionNames{10,1};
-saveResults.ACCCluster7 = interChannelCoherence.ACC.clusterRegionNames{11,1};
-saveResults.ACCCluster8 = interChannelCoherence.ACC.clusterRegionNames{13,1};
 
-saveResults.MCCCluster2 = interChannelCoherence.MCC.clusterRegionNames{1,1};
-saveResults.MCCCluster3 = interChannelCoherence.MCC.clusterRegionNames{5,1};
-saveResults.MCCCluster4 = interChannelCoherence.MCC.clusterRegionNames{6,1};
-saveResults.MCCCluster5 = interChannelCoherence.MCC.clusterRegionNames{8,1};
-saveResults.MCCCluster6 = interChannelCoherence.MCC.clusterRegionNames{10,1};
-saveResults.MCCCluster7 = interChannelCoherence.MCC.clusterRegionNames{16,1};
-saveResults.MCCCluster8 = interChannelCoherence.MCC.clusterRegionNames{17,1};
+% Create a mapping from region names to region codes
+regionNameToCodeMap = containers.Map(regionSort.Name, regionSort.Region);
 
-saveResults.PCCCluster2 = interChannelCoherence.PCC.clusterRegionNames{1,1};
-saveResults.PCCCluster3 = interChannelCoherence.PCC.clusterRegionNames{2,1};
-saveResults.PCCCluster4 = interChannelCoherence.PCC.clusterRegionNames{3,1};
-saveResults.PCCCluster5 = interChannelCoherence.PCC.clusterRegionNames{4,1};
-saveResults.PCCCluster6 = interChannelCoherence.PCC.clusterRegionNames{5,1};
-saveResults.PCCCluster7 = interChannelCoherence.PCC.clusterRegionNames{8,1};
-saveResults.PCCCluster8 = interChannelCoherence.PCC.clusterRegionNames{11,1};
+% Function to convert region names to region codes
+convertNamesToRegions = @(regionNames) cellfun(@(name) ...
+    regionNameToCodeMap(name), regionNames, 'UniformOutput', false);
+
+% Convert cluster region names to region codes for each condition
+saveResults.ACCCluster1 = convertNamesToRegions(interChannelCoherence.ACC.clusterRegionNames{1,1});
+saveResults.ACCCluster2 = convertNamesToRegions(interChannelCoherence.ACC.clusterRegionNames{3,1});
+saveResults.ACCCluster3 = convertNamesToRegions(interChannelCoherence.ACC.clusterRegionNames{4,1});
+saveResults.ACCCluster4 = convertNamesToRegions(interChannelCoherence.ACC.clusterRegionNames{5,1});
+saveResults.ACCCluster5 = convertNamesToRegions(interChannelCoherence.ACC.clusterRegionNames{9,1});
+saveResults.ACCCluster6 = convertNamesToRegions(interChannelCoherence.ACC.clusterRegionNames{10,1});
+saveResults.ACCCluster7 = convertNamesToRegions(interChannelCoherence.ACC.clusterRegionNames{11,1});
+saveResults.ACCCluster8 = convertNamesToRegions(interChannelCoherence.ACC.clusterRegionNames{13,1});
+
+saveResults.MCCCluster2 = convertNamesToRegions(interChannelCoherence.MCC.clusterRegionNames{1,1});
+saveResults.MCCCluster3 = convertNamesToRegions(interChannelCoherence.MCC.clusterRegionNames{5,1});
+saveResults.MCCCluster4 = convertNamesToRegions(interChannelCoherence.MCC.clusterRegionNames{6,1});
+saveResults.MCCCluster5 = convertNamesToRegions(interChannelCoherence.MCC.clusterRegionNames{8,1});
+saveResults.MCCCluster6 = convertNamesToRegions(interChannelCoherence.MCC.clusterRegionNames{10,1});
+saveResults.MCCCluster7 = convertNamesToRegions(interChannelCoherence.MCC.clusterRegionNames{16,1});
+saveResults.MCCCluster8 = convertNamesToRegions(interChannelCoherence.MCC.clusterRegionNames{17,1});
+
+saveResults.PCCCluster2 = convertNamesToRegions(interChannelCoherence.PCC.clusterRegionNames{1,1});
+saveResults.PCCCluster3 = convertNamesToRegions(interChannelCoherence.PCC.clusterRegionNames{2,1});
+saveResults.PCCCluster4 = convertNamesToRegions(interChannelCoherence.PCC.clusterRegionNames{3,1});
+saveResults.PCCCluster5 = convertNamesToRegions(interChannelCoherence.PCC.clusterRegionNames{4,1});
+saveResults.PCCCluster6 = convertNamesToRegions(interChannelCoherence.PCC.clusterRegionNames{5,1});
+saveResults.PCCCluster7 = convertNamesToRegions(interChannelCoherence.PCC.clusterRegionNames{8,1});
+saveResults.PCCCluster8 = convertNamesToRegions(interChannelCoherence.PCC.clusterRegionNames{11,1});
 
 
 appendLog('Fig 4-regions in each cluster', 'hierarchical clustering, a list of regions within each cluster for each region', saveResults)

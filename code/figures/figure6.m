@@ -143,7 +143,6 @@ view([-180.8 73.9])
 
 saveas(gcf,[saveDir conditionNames{c} '_CCEPandGamma.png'])
 
-theah 
 figure();
 ax = axes;
 colorbar(ax)
@@ -164,6 +163,17 @@ box off
 saveas(gcf,[saveDir conditionNames{c} '_CCEPandGammaRegions.svg'])
 
 end
+
+saveResults.labels = brainFieldnames;
+saveResults.ACCGamma = gamma(1,:);
+saveResults.MCCGamma = gamma(2,:);
+saveResults.PCCGamma = gamma(3,:);
+saveResults.conditionsContactCount = {'ACC','MCC','PCC'};
+saveResults.significantCCEPCount = count(:,1);
+saveResults.significantGamma = count(:,2);
+saveResults.percentSigGamma = count(:,2)./count(:,1);
+
+appendLog('Figure 6: evoked gamma resonse', 'evoked gamma responses for each region', saveResults)
 
 %% bar plot to compare percentages
 figure();
@@ -285,6 +295,7 @@ box off
 saveas(gcf,[saveDir conditionNames{c} '_GammaOnlyRegions.svg'])
 
 end
+
 
 %% bar plot to compare percentages
 figure();

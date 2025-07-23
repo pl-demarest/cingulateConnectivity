@@ -176,7 +176,7 @@ for i = 1:length(templateBrain.regionList)
 
     d = sqrt(sum((coordinates(i,:)-centroid).^2));
     
-    if d <= .08
+    if d <= .08 %within ~5% of the triangle's area
         equalRegionColors(i,:) = getColors('modern orange');
     else
         equalRegionColors(i,:) = [0.8,0.8,0.8];
@@ -280,7 +280,10 @@ axis equal
 axis off
 saveas(gcf,[saveDir 'relativeConnectivityLegend.svg'])
 saveas(gcf,[saveDir 'relativeConnectivityLegend.png'])
-%% 
+
+
+%% Now repeat for supplemental brain maps -> these will require 3 colors and an alpha value
+
 %conditions
 effectSizes = [];
 effectVariation = [];
@@ -335,27 +338,28 @@ for i = 1:length(templateBrain.regionList)
         end
         if sum(condition.MStim & curRegion & ~stimulated) == 0
         storeNoCoverage(i,2) = 1;
+
         end
         if sum(condition.PStim & curRegion & ~stimulated) == 0
         storeNoCoverage(i,3) = 1;
         end
 
 end
-
 saveResults.regions = templateBrain.regionList;
 saveResults.ACCCoherence = effectSizes(:,1);
 saveResults.MCCCoherence = effectSizes(:,2);
 saveResults.PCCCoherence = effectSizes(:,3);
 
-appendLog('Sup Fig 3 RMS Across Conditions', 'average RMS across conditions', saveResults)
+appendLog('Sup Fig 2 Coherence Across Conditions', 'average cohens d across conditions', saveResults)
 clear saveResults;
 
 %%
-%normalize each row so that maximum alpha can be assigned as between 0.2 and .7
+%normalize each row so that maximum alpha can be assigned
 aAlphas = effectSizes(:,1);
 aNan = isnan(aAlphas); %store nan values to adjust to grey
 storeZeros = logical(storeZeros);
 noCover = logical(storeNoCoverage(:,1));
+
 [~,~,aColors] = electrodeEffectSizes(aAlphas,getColors('lush lilac gradient'),1.5,4,[0.8,0.8,0.8]);
 aColors(aNan,:) = 0.8;
 aColors(noCover,:) = 0.4;
@@ -367,22 +371,20 @@ subplot(1,5,1)
 [surface] = plotProjectedRegionsOnly(templateBrainLeft,aColors);
 view([270,0])
 
+
 subplot(1,5,2);
 [surface] = plotProjectedRegionsOnly(templateBrainRight,aColors);
 view([270,0])
-
 
 subplot(1,5,3);
 insulaColors = aColors(insulaBool,:);
 [surfaceInsula] = plotProjectedRegionsOnly(insulaTemplateLeft,insulaColors);
 view([270,0])
 
-
 subplot(1,5,4);
 hipAmygColors = aColors(hipAmygBool,:);
 [surfaceHA] = plotProjectedRegionsOnly(hipAmygTemplate,hipAmygColors);
 view([-176.4 -90.0])
-
 
 subplot(1,5,5);
 hipAmygColors = aColors(hipAmygBool,:);
@@ -432,6 +434,7 @@ subplot(1,5,5);
 hipAmygColors = mColors(hipAmygBool,:);
 [surfaceHA] = plotProjectedRegionsOnly(hipAmygTemplate,hipAmygColors);
 view([-180.8 73.9])
+
 saveas(gcf,[saveDir 'connectivityMCC.png'])
 
 figure();
@@ -542,23 +545,3 @@ axis equal
 axis off
 saveas(gcf,[saveDir 'connectivityEqualLegend.svg'])
 saveas(gcf,[saveDir 'connectivityEqualLegend.png'])
-
-%% Use this to identify the different hippocampus regions
-figure('Position',[281          32        3060        1260]);
-hipAmygColors = aColors(hipAmygBool,:);
-[surfaceHA] = plotProjectedRegionsOnly(hipAmygTemplate,hipAmygColors);
-view([-176.4 -90.0])
-fns = fieldnames(hipAmygTemplate.regions);
-
-for i = 1:length(hipAmygColors)
-    
-    hipAmygColors(i,:) = [1,0,0];
-    [surfaceHA] = plotProjectedRegionsOnly(hipAmygTemplate,hipAmygColors);
-    hipAmygColors(i,:) = [.5,.5,.5];
-    disp(fns(i))
-
-end
-
-%% show example cceps and their RMS vs COh's D, using HP_tail as an example
-
-hipTail = contains([pooledData.electrodeRegionLabel{:}],hipAmyg);

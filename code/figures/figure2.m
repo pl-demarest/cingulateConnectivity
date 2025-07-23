@@ -103,7 +103,7 @@ box off
 
 saveas(gcf,[saveDir exemplarNames{i} '_coherenceDistribution_.svg'])
 end
-%% FIGURE 2d %%%%%%%%%%%%%%%%
+%% Supplemetal Figure %%%%%%%%%%%%%%%%
 %General plot showing the relationship between coherence and RMS, and the
 %one-dimensional scatter plot showing significant vs non-significant
 %responses 
@@ -172,7 +172,7 @@ title(['AUC ' num2str(AUC) ' ' 'OT ' num2str(O)])
 saveas(gcf,[saveDir '_rmsDistributionSignificantResponses_.svg'])
 
 
-%% FIGURE 2e %%%%%%%%%%%%%%%%
+%% FIGURE 2d %%%%%%%%%%%%%%%%
 %violin plots showing the distributions of data for coherence and for
 %variance. Note that these plot functions require the violinplot matlab
 %commmunity package downloaded from :https://github.com/bastibe/Violinplot-Matlab
@@ -220,9 +220,16 @@ pp = ranksum(dataToPlot(:,5),dataToPlot(:,6))
 
 
 saveResults.labels = {'ACC','MCC','PCC'};
+saveResults.counts = [sum(~isnan(a(:))), sum(~isnan(m(:))), sum(~isnan(p(:)))];
 saveResults.comparisonLabels = {'a-m','a-p','m-p','a-a','m-m','p-p'};
 saveResults.meanCohensD = [nanmean(a(:)),nanmean(m(:)),nanmean(p(:))];
+saveResults.stdCohensD = [nanstd(a(:)),nanstd(m(:)),nanstd(p(:))];
 saveResults.comparisonsCohensD = [am,ap,mp,aa,mm,pp];
+saveResults.hemisphericLabels = {'LA', 'RA', 'LM', 'RM', 'LP', 'RP'};
+saveResults.hemisphericMeansCohD = [nanmean(dataToPlot(:,1)), nanmean(dataToPlot(:,2)), nanmean(dataToPlot(:,3)), ...
+    nanmean(dataToPlot(:,4)),nanmean(dataToPlot(:,5)),nanmean(dataToPlot(:,6))];
+saveResults.hemisphericSTDCohD = [nanstd(dataToPlot(:,1)), nanstd(dataToPlot(:,2)), nanstd(dataToPlot(:,3)), ...
+    nanstd(dataToPlot(:,4)),nanstd(dataToPlot(:,5)),nanstd(dataToPlot(:,6))];
 %format data for plotting functions
 
 figure('position',[72   805   935   479])
@@ -253,7 +260,12 @@ aa = ranksum(dataToPlot(:,1),dataToPlot(:,2))
 mm = ranksum(dataToPlot(:,3),dataToPlot(:,4))
 pp = ranksum(dataToPlot(:,5),dataToPlot(:,6))
 saveResults.meanVariance = [nanmean(a(:)),nanmean(m(:)),nanmean(p(:))];
+saveResults.stdVariane = [nanstd(a(:)),nanstd(m(:)),nanstd(p(:))];
 saveResults.comparisonsVariance = [am,ap,mp,aa,mm,pp];
+saveResults.hemisphericMeansVar = [nanmean(dataToPlot(:,1)), nanmean(dataToPlot(:,2)), nanmean(dataToPlot(:,3)), ...
+    nanmean(dataToPlot(:,4)),nanmean(dataToPlot(:,5)),nanmean(dataToPlot(:,6))];
+saveResults.hemisphericSTDVar = [nanstd(dataToPlot(:,1)), nanstd(dataToPlot(:,2)), nanstd(dataToPlot(:,3)), ...
+    nanstd(dataToPlot(:,4)),nanstd(dataToPlot(:,5)),nanstd(dataToPlot(:,6))];
 
 appendLog('Figure 2e Coherence Statistics', 'statistical comparisons between stimulation conditions: coherence and coherence variance', saveResults)
 clear saveResults;
@@ -845,3 +857,5 @@ axis equal
 axis off
 saveas(gcf,[saveDir 'connectivityEqualLegend.svg'])
 saveas(gcf,[saveDir 'connectivityEqualLegend.png'])
+%% save list of regions with equal connectivity
+

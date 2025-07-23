@@ -275,12 +275,11 @@ saveas(gcf,[saveDir '_CCStimCount.svg'])
 saveas(gcf,[saveDir '_CCStimCount.png'])
 
 saveResults.stimConditions = {'Left ACC', 'Left MCC', 'Left PCC', 'Right ACC', 'Right MCC', 'Right PCC'};
-saveResults.stimPercentages = compiled(:);
+saveResults.stimPercentages = [compiled(1,:),compiled(2,:)];
 appendLog('Figure 1c', 'percentage of channels in each stimulation condition', saveResults)
 clear saveResults;
 
 %% plot exemplar CCEPs from OFC
-
 length_samples = 3800;
 % Sampling rate
 fs = 2000; % Hz, samples per second
@@ -301,11 +300,11 @@ indexM = find((findSignificant & findMCC & findChannels) == 1);
 indexP = find((findSignificant & findPCC & findChannels) == 1);
 
 figure('Position',[1441          44         231         899]);
-for ch = 1:3
 
-    curA = pooledData.CCEPs(:,indexA(ch))';
+for idx = 1:3
 
-    subplot(3,1,ch)
+    curA = pooledData.CCEPs(:,indexA(idx))';
+    subplot(3,1,idx)
 
     plot(timeVector, curA,'Color',getColors('lush lilac'),'LineWidth',1);
     hold on

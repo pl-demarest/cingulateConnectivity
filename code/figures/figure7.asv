@@ -1,0 +1,33 @@
+clear
+close all
+addpath(genpath(cd))
+
+% Load dependencies
+load('code/dependencies/templateBrain.mat');
+load('code/dependencies/listHip.mat');
+load('code/dependencies/listAmyg.mat');
+regionSort = readtable('code/dependencies/regionCategories.xlsx');
+load('data/randomForestResults/result.mat');
+pooledData = load('data/pooledData.mat');
+
+% Create output directory
+saveDir = 'figures/supplemental/regionLegends/';
+mkdir(saveDir);
+
+%%
+correctClass = result(:,37) == result(:,38); %initialize bool for correct classification instances 
+rms = pooledData.RMS; %RMS
+rmsP = pooledData.RMSP; %coherence values
+cohD = pooledData.cohensD; 
+cohDP = pooledData.pValue;
+
+alphaCohD = calculateAlphaThreshold(cohDP, 0.0001);
+alphaRMS = calculateAlphaThreshold(rmsP,0,0001);
+%% average coherence and RMS for correct vs incorrect 
+
+
+
+%% percent significant cohens d or RMS for correct vs incorrect
+
+
+%% anatomical parcellation of classification accuracy 

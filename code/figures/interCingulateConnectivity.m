@@ -181,7 +181,8 @@ end
 
 set(gca,'CameraViewAngleMode','Manual')
 axis equal
-
+saveResults.subjectCountLabels = {'ACC','MCC','PCC'};
+saveResults.subjectCount = [accSubjects, mccSubjects, pccSubjects];
 zoom(1)
 
 %%
