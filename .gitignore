@@ -1,4 +1,15 @@
+# AppleDouble metadata (external / network volumes)
+._*
+
+# Cursor IDE
+.cursor/
+
 /data
 /code/util/eeglab2022.0
 /code/util/tools
 /figures
+/code/legacy
+CLAUDE.md
+
+# Exceeds GitHub 100 MB limit; keep locally only
+manuscript/documents/main/CC_effectiveConnectivity_Supplemental_Draft1.pdf

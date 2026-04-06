@@ -1,0 +1,30 @@
+
+=================================================================
+  cingulateConnectivity Preflight Report
+  Generated: 06-Apr-2026 14:35:54
+=================================================================
+
+  GLOBAL CHECKS
+  ------------------------------------------------------------
+  [PASS]  MATLAB version                              24.2.0.2806996 (R2024b) Update 3
+  [PASS]  Signal Processing Toolbox                   24.2
+  [PASS]  Statistics & ML Toolbox                     24.2
+  [FAIL]  load_bcidat on path                         Not found. Ensure addpath(genpath(cd)) has been run from repo root. load_bcidat is required to read BCI2000 .dat files in preprocessData.
+  [PASS]  code/dependencies/cingulateID.mat           Destrieux atlas IDs for cingulate regions
+  [PASS]  code/dependencies/labelTable.txt            Atlas ID -> region name lookup table
+  [PASS]  code/dependencies/SEEGClinical22ChanLoc_xyz.mat  Surface EEG channel location info
+  [PASS]  code/dependencies/cingulateNames.mat        Cingulate region name strings for figure labels
+  [PASS]  code/dependencies/regionCategories.xlsx     Region grouping table for hierarchical analysis
+  [PASS]  code/dependencies/mniMRI.mat                MNI brain template for 3D rendering
+  [PASS]  code/dependencies/listAmyg.mat              Amygdala atlas label list
+  [PASS]  code/dependencies/listHip.mat               Hippocampus atlas label list
+  [PASS]  code/dependencies/listCort.mat              Cortex atlas label list
+  [PASS]  code/dependencies/templateLHip.mat          Left hippocampus surface template
+  [PASS]  code/dependencies/templateRHip.mat          Right hippocampus surface template
+  [PASS]  code/dependencies/templateBrain.mat         Whole-brain surface template
+
+=================================================================
+  SUMMARY:  15 passed  |  0 warnings  |  1 failed
+  STATUS:   NOT READY - resolve all [FAIL] items before running
+=================================================================
+

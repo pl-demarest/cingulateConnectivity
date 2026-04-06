@@ -1,3 +1,4 @@
+
 %% analyze EEG
 clear
 addpath(genpath(cd))
@@ -187,7 +188,11 @@ for g = 1:length(fns)
        elseif isempty(erpON) && ~isempty(erpOFF)
         
         if ~isscalar(erpOFF)
-        erpDetection(g,ch,:) = erpOFF;
+            if erpOFF(1) < 1700 || erpOFF(1) > 2300
+                erpDetection(g,ch,:) = [nan, nan];
+            else
+                erpDetection(g,ch,:) = erpOFF;
+            end
         elseif isscalar(erpOFF) && (erpOFF > 2300 || erpOFF <1700)
         erpDetection(g,ch,:) = [nan,nan];
         else
@@ -230,6 +235,188 @@ for g = 1:length(fns)
 
     ERPMag.(fns{g}).mean = storeERP;
     ERPMag.(fns{g}).erpDetection = erpDetection;
+
+end
+
+%% Determine response progression across EEG scalp for each condition
+
+%erpDetection organized as group x chan x [on off]
+
+%get channel names
+
+chanNames = pooledData.EEGChans(1:23);
+
+%create a grid structure for spatial relationships between chans
+chanGrid = {'F9','Fp1','FPz','Fp2','F10';'F7','F3','Fz','F4','F8';'T7','C3','Cz','C4','T8';'P7','P3','Pz','P4','P8';nan,'O1','Oz','O2',nan};
+
+% Convert chanNames to cell array of label strings if stored as struct
+if isstruct(chanNames)
+    chanLabels = {chanNames.labels};
+else
+    chanLabels = chanNames;
+end
+
+% Build spatial adjacency matrix from channel grid layout (8-connected)
+[adjMatrix, gridMap] = buildChanAdjacency(chanLabels, chanGrid);
+
+% Compute and visualize propagation map for each group
+nGroups = size(erpDetection, 1);
+
+for g = 1:nGroups
+
+    % Assign group color
+    if g <= 2
+        curColor = aColor;
+    elseif g <= 4
+        curColor = mColor;
+    else
+        curColor = pColor;
+    end
+
+    % Extract onset latencies for this group (first index of dim 3)
+    onsetLat = erpDetection(g,:,1);
+    onsetLat(onsetLat < 1700 | onsetLat > 2300) = NaN;
+
+    % Compute propagation
+    propagation(g) = computePropagation(onsetLat, adjMatrix);
+
+    % Store latencies in ms for convenience
+    if propagation(g).nValid > 0
+        propagation(g).latenciesMs = timeVector(round(propagation(g).latencies));
+    else
+        propagation(g).latenciesMs = [];
+    end
+
+    % Display summary to console
+    fprintf('\n=== %s: %d origins, %d responding channels ===\n', ...
+        fns{g}, propagation(g).nOrigins, propagation(g).nValid);
+    for i = 1:propagation(g).nValid
+        ch = propagation(g).chanOrder(i);
+        if propagation(g).isOrigin(i)
+            fprintf('  [ORIGIN %d] #%d: %s (%.1f ms)\n', ...
+                propagation(g).treeID(i), i, chanLabels{ch}, propagation(g).latenciesMs(i));
+        else
+            parentCh = propagation(g).parentChan(i);
+            fprintf('  #%d: %s <- %s (%.1f ms)\n', ...
+                i, chanLabels{ch}, chanLabels{parentCh}, propagation(g).latenciesMs(i));
+        end
+    end
+
+    % Visualize propagation map
+    plotPropagationMap(propagation(g), chanLabels, chanGrid, gridMap, ...
+        fns{g}, curColor, timeVector);
+    saveas(gcf, ['/Volumes/Samsung_T5/cingulateConnectivity/figures/legacy/' ...
+        fns{g} '_propagation.svg'])
+
+end
+
+%% Generate Spectrograms (ERSP via newtimef)
+
+fs = 2000;
+nFramesERSP = size(pooledData.EEGERP, 1);
+epochDurERSP = (nFramesERSP - 1) / fs * 1000;
+tlimitsERSP = [-epochDurERSP/2, epochDurERSP/2];
+
+for g = 1:nGroups
+
+    curDat = pooledData.EEGERP(:, idx.(fns{g}));
+    curChans = pooledData.EEGChannelNumber(idx.(fns{g}));
+    uniqueChans = unique(curChans);
+
+    for ch = 1:length(uniqueChans)
+        curIDX = find(curChans == uniqueChans(ch));
+        trialData = curDat(:, curIDX);
+
+        [ersp, itc, ~, times, freqs] = newtimef( ...
+            trialData, nFramesERSP, tlimitsERSP, fs, [2 0.5], ...
+            'freqs', [4 40], ...
+            'nfreqs', 100, ...
+            'baseline', [tlimitsERSP(1) -10], ...
+            'padratio', 4, ...
+            'plotersp', 'off', ...
+            'plotitc', 'off', ...
+            'verbose', 'off');
+
+        spectra.(fns{g}).ersp(ch,:,:) = ersp;
+        spectra.(fns{g}).itc(ch,:,:) = itc;
+    end
+
+    spectra.(fns{g}).times = times;
+    spectra.(fns{g}).freqs = freqs;
+    fprintf('Completed ERSP: %s (%d channels)\n', fns{g}, length(uniqueChans));
+
+end
+
+
+%% Z-score ERSP to baseline at each frequency
+
+for g = 1:nGroups
+    curERSP = spectra.(fns{g}).ersp;
+    curTimes = spectra.(fns{g}).times;
+    baseIdx = curTimes < -50;
+    nCh = size(curERSP, 1);
+
+    for ch = 1:nCh
+        for fi = 1:size(curERSP, 2)
+            baseVals = curERSP(ch, fi, baseIdx);
+            bMean = mean(baseVals(:));
+            bStd = std(baseVals(:));
+            if bStd > 0
+                curERSP(ch, fi, :) = (curERSP(ch, fi, :) - bMean) / bStd;
+            else
+                curERSP(ch, fi, :) = curERSP(ch, fi, :) - bMean;
+            end
+        end
+    end
+
+    spectra.(fns{g}).erspZ = curERSP;
+end
+
+
+%% Visualize spectrograms (ERSP, z-scored)
+
+globalMax = 0;
+for g = 1:nGroups
+    globalMax = max(globalMax, max(abs(spectra.(fns{g}).erspZ(:))));
+end
+cLim = [-5 5];
+
+for g = 1:nGroups
+
+    curERSP = spectra.(fns{g}).erspZ;
+    curTimes = spectra.(fns{g}).times;
+    curFreqs = spectra.(fns{g}).freqs;
+    nCh = size(curERSP, 1);
+    [rows, cols] = getSubplotDimensions(nCh);
+
+    fig = figure('Position', [100 100 1600 900]);
+
+    for ch = 1:nCh
+        subplot(rows, cols, ch)
+        imagesc(curTimes, curFreqs, squeeze(curERSP(ch,:,:)))
+        set(gca, 'YDir', 'normal')
+        caxis(cLim)
+        hold on
+        yline(15,'--','LineWidth',1)
+        yline(30,'--','LineWidth',1)
+        title(EEGChans(ch).labels, 'FontSize', 9)
+        xlabel('Time (ms)')
+        ylabel('Frequency (Hz)')
+        set(gca, 'FontSize', 8, 'FontName', 'Helvetica')
+        box off
+    end
+
+    sgtitle(fns{g}, 'FontSize', 16, 'FontWeight', 'bold', 'FontName', 'Helvetica')
+    colormap(parula)
+
+    cbAx = axes('Position', [0 0 1 1], 'Visible', 'off');
+    caxis(cbAx, cLim);
+    colormap(cbAx, parula);
+    cb = colorbar(cbAx, 'Position', [0.94 0.06 0.015 0.88]);
+    cb.FontSize = 10;
+    cb.Label.String = 'Z-score';
+
+    saveas(gcf, ['/Volumes/Samsung_T5/cingulateConnectivity/figures/legacy/' fns{g} '_spectrogram.svg'])
 
 end
 
@@ -318,8 +505,6 @@ for g = uniqueGroups
     colormap(flip(curColor))
     saveas(gcf,['/Volumes/Samsung_T5/cingulateConnectivity/figures/legacy/sfn2024/' title '_latency.svg'])
     
-
-
 
 end
 
@@ -738,3 +923,266 @@ end
 
 close(vidObj);
 
+%% Helper Functions
+
+function [adjMatrix, gridMap] = buildChanAdjacency(chanLabels, chanGrid)
+%BUILDCHANADJACENCY Build adjacency matrix from channel grid layout.
+%   Maps channel labels to their (row, col) positions in chanGrid and
+%   determines 8-connected spatial adjacency between channels.
+%
+%   Inputs:
+%       chanLabels - 1xN cell array of channel label strings
+%       chanGrid   - RxC cell array defining spatial layout (NaN = empty)
+%
+%   Outputs:
+%       adjMatrix  - NxN logical adjacency matrix
+%       gridMap    - Nx2 matrix of [row, col] positions (NaN if unmapped)
+
+    nChans = length(chanLabels);
+    adjMatrix = false(nChans);
+    gridMap = nan(nChans, 2);
+
+    [nRows, nCols] = size(chanGrid);
+
+    % Map each channel label to its grid position (case-insensitive)
+    for ch = 1:nChans
+        for r = 1:nRows
+            for c = 1:nCols
+                if ischar(chanGrid{r,c}) && strcmpi(chanGrid{r,c}, chanLabels{ch})
+                    gridMap(ch,:) = [r, c];
+                end
+            end
+        end
+    end
+
+    % Warn about unmapped channels
+    unmapped = find(any(isnan(gridMap), 2));
+    if ~isempty(unmapped)
+        for u = 1:length(unmapped)
+            warning('Channel "%s" (index %d) not found in chanGrid — excluded from adjacency.', ...
+                chanLabels{unmapped(u)}, unmapped(u));
+        end
+    end
+
+    % Build 8-connected adjacency matrix
+    for i = 1:nChans
+        if any(isnan(gridMap(i,:))); continue; end
+        for j = i+1:nChans
+            if any(isnan(gridMap(j,:))); continue; end
+            rowDiff = abs(gridMap(i,1) - gridMap(j,1));
+            colDiff = abs(gridMap(i,2) - gridMap(j,2));
+            if rowDiff <= 1 && colDiff <= 1
+                adjMatrix(i,j) = true;
+                adjMatrix(j,i) = true;
+            end
+        end
+    end
+end
+
+function prop = computePropagation(onsetLatencies, adjMatrix)
+%COMPUTEPROPAGATION Determine ERP response propagation across scalp.
+%   Uses a latency-ordered traversal with adjacency checking to identify
+%   origin points and propagation paths.
+%
+%   Inputs:
+%       onsetLatencies - 1xN vector of onset latencies (NaN = no response)
+%       adjMatrix      - NxN logical adjacency matrix
+%
+%   Outputs:
+%       prop - struct containing propagation results (see fields below)
+
+    nChans = length(onsetLatencies);
+
+    % Identify valid channels (non-NaN onset latency)
+    validMask = ~isnan(onsetLatencies);
+    validChans = find(validMask);
+    validLats = onsetLatencies(validMask);
+
+    % Sort by onset latency (ascending = earliest first)
+    [sortedLats, sortIdx] = sort(validLats);
+    chanOrder = validChans(sortIdx);
+    nValid = length(chanOrder);
+
+    % Initialize tracking arrays
+    isOrigin = false(1, nValid);
+    parentChan = nan(1, nValid);
+    treeID = zeros(1, nValid);
+    edges = [];
+    visited = false(1, nChans);
+    nTrees = 0;
+
+    for i = 1:nValid
+        ch = chanOrder(i);
+
+        % Find all previously visited channels adjacent to current channel
+        visitedChans = find(visited);
+        adjacentVisited = visitedChans(adjMatrix(ch, visitedChans));
+
+        if isempty(adjacentVisited)
+            % No adjacent visited channel — mark as new origin
+            nTrees = nTrees + 1;
+            isOrigin(i) = true;
+            treeID(i) = nTrees;
+        else
+            % Connect to the adjacent visited channel with the earliest onset
+            adjLats = onsetLatencies(adjacentVisited);
+            [~, minIdx] = min(adjLats);
+            parentCh = adjacentVisited(minIdx);
+
+            parentChan(i) = parentCh;
+            edges = [edges; parentCh, ch]; %#ok<AGROW>
+
+            % Inherit tree ID from parent
+            parentOrderIdx = find(chanOrder == parentCh);
+            treeID(i) = treeID(parentOrderIdx);
+        end
+
+        visited(ch) = true;
+    end
+
+    % Package results
+    prop.chanOrder = chanOrder;
+    prop.latencies = sortedLats;
+    prop.latenciesMs = [];  % populated in main code with timeVector
+    prop.isOrigin = isOrigin;
+    prop.parentChan = parentChan;
+    prop.treeID = treeID;
+    prop.edges = edges;
+    prop.nOrigins = nTrees;
+    prop.nValid = nValid;
+
+    % Create full-channel maps (NaN for non-responding channels)
+    prop.fullTreeID = nan(1, nChans);
+    prop.fullOrder = nan(1, nChans);
+    for i = 1:nValid
+        prop.fullTreeID(chanOrder(i)) = treeID(i);
+        prop.fullOrder(chanOrder(i)) = i;
+    end
+end
+
+function plotPropagationMap(prop, chanLabels, chanGrid, gridMap, groupName, baseColor, timeVector)
+%PLOTPROPAGATIONMAP Visualize ERP propagation across the scalp grid.
+%   Draws a grid-based map showing origin points, propagation arrows,
+%   and temporal ordering of ERP responses.
+%
+%   Inputs:
+%       prop       - propagation struct from computePropagation
+%       chanLabels - 1xN cell array of channel label strings
+%       chanGrid   - RxC cell array defining spatial layout
+%       gridMap    - Nx2 matrix of [row, col] positions
+%       groupName  - string label for the group (e.g. 'lACC')
+%       baseColor  - 1x3 RGB color for the group
+%       timeVector - 1xT time vector (samples to ms mapping)
+
+    [nRows, nCols] = size(chanGrid);
+    nChans = length(chanLabels);
+
+    % Generate distinct colors for each propagation tree
+    nTrees = max(prop.nOrigins, 1);
+    if nTrees == 1
+        treeColors = baseColor;
+    else
+        treeColors = zeros(nTrees, 3);
+        baseHSV = rgb2hsv(baseColor);
+        for t = 1:nTrees
+            f = (t-1) / (nTrees-1);
+            curHSV = baseHSV;
+            curHSV(2) = baseHSV(2) * (1 - 0.5*f);
+            curHSV(3) = min(1, baseHSV(3) + 0.3*f);
+            treeColors(t,:) = hsv2rgb(curHSV);
+        end
+    end
+
+    figure('Position', [100, 100, 650, 750]);
+    hold on;
+
+    % Draw each channel as a circle on the grid
+    for ch = 1:nChans
+        if any(isnan(gridMap(ch,:))); continue; end
+
+        x = gridMap(ch, 2);
+        y = nRows + 1 - gridMap(ch, 1);  % flip so row 1 is at top
+
+        orderIdx = prop.fullOrder(ch);
+
+        if isnan(orderIdx)
+            % No detected response — gray circle
+            scatter(x, y, 600, [0.85 0.85 0.85], 'filled', ...
+                'MarkerEdgeColor', [0.6 0.6 0.6], 'LineWidth', 1);
+            text(x, y, chanLabels{ch}, 'HorizontalAlignment', 'center', ...
+                'VerticalAlignment', 'middle', 'FontSize', 8, ...
+                'Color', [0.5 0.5 0.5]);
+        else
+            treeIdx = prop.fullTreeID(ch);
+            curColor = treeColors(min(treeIdx, size(treeColors,1)), :);
+
+            if prop.isOrigin(orderIdx)
+                % Origin: double-ring border
+                scatter(x, y, 900, curColor*0.6, 'filled', ...
+                    'MarkerEdgeColor', 'k', 'LineWidth', 2.5);
+                scatter(x, y, 600, curColor, 'filled', ...
+                    'MarkerEdgeColor', curColor*0.6, 'LineWidth', 2);
+            else
+                % Propagated response
+                scatter(x, y, 600, curColor, 'filled', ...
+                    'MarkerEdgeColor', 'k', 'LineWidth', 1);
+            end
+
+            % Channel name
+            text(x, y + 0.13, chanLabels{ch}, 'HorizontalAlignment', 'center', ...
+                'VerticalAlignment', 'middle', 'FontSize', 8, 'FontWeight', 'bold');
+
+            % Temporal rank and latency in ms
+            latMs = timeVector(round(prop.latencies(orderIdx)));
+            text(x, y - 0.08, sprintf('#%d', orderIdx), ...
+                'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
+                'FontSize', 7.5, 'FontWeight', 'bold');
+            text(x, y - 0.25, sprintf('%.0f ms', latMs), ...
+                'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
+                'FontSize', 6.5, 'Color', [0.3 0.3 0.3]);
+        end
+    end
+
+    % Draw propagation arrows
+    for e = 1:size(prop.edges, 1)
+        fromCh = prop.edges(e, 1);
+        toCh = prop.edges(e, 2);
+
+        x1 = gridMap(fromCh, 2);
+        y1 = nRows + 1 - gridMap(fromCh, 1);
+        x2 = gridMap(toCh, 2);
+        y2 = nRows + 1 - gridMap(toCh, 1);
+
+        dx = x2 - x1;
+        dy = y2 - y1;
+        len = sqrt(dx^2 + dy^2);
+
+        if len > 0
+            % Shorten arrow to avoid overlapping circles
+            shrinkDist = 0.35;
+            sx = x1 + shrinkDist * dx / len;
+            sy = y1 + shrinkDist * dy / len;
+            adx = dx - 2 * shrinkDist * dx / len;
+            ady = dy - 2 * shrinkDist * dy / len;
+
+            quiver(sx, sy, adx, ady, 0, ...
+                'Color', [0.15 0.15 0.15], 'LineWidth', 2, ...
+                'MaxHeadSize', 0.5);
+        end
+    end
+
+    hold off;
+    axis equal;
+    xlim([0.3, nCols + 0.7]);
+    ylim([0.3, nRows + 0.7]);
+    axis off;
+
+    if prop.nOrigins == 1
+        originStr = 'origin';
+    else
+        originStr = 'origins';
+    end
+    title(sprintf('Response Propagation: %s (%d %s)', ...
+        groupName, prop.nOrigins, originStr), ...
+        'FontSize', 14, 'FontName', 'Helvetica');
+end

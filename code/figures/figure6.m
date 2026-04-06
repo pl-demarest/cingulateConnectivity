@@ -38,7 +38,29 @@ regionColorsCC = [getColors('lush lilac');
     getColors('celadon porcelain');
     getColors('lago blue')];
 
+% initialize variables
+leftHStim = contains([pooledData.stimulatedRegion{:}],'_lh_');
+rightHStim = contains([pooledData.stimulatedRegion{:}],'_rh_');
+
+leftHRec = pooledData.electrodeCoordinates(1,:) < 0;
+rightHRec = pooledData.electrodeCoordinates(1,:) > 0;
+
+sigChannelsIDX = find(pooledData.pValue < alpha);
+stimRegion = [pooledData.stimulatedRegion{sigChannelsIDX}]; 
+
+%index groups for each subregion of the cingulate
+idx.lACC = find(ismember(stimRegion,leftACC));
+idx.rACC = find(ismember(stimRegion,rightACC));
+idx.lMCC = find(ismember(stimRegion,leftMCC));
+idx.rMCC = find(ismember(stimRegion,rightMCC));
+idx.lPCC = find(ismember(stimRegion,leftPCC));
+idx.rPCC = find(ismember(stimRegion,rightPCC));
+
 brainFieldnames = fieldnames(templateBrain.regions);
+
+aColor = getColors('lush lilac');
+mColor = getColors('celadon porcelain');
+pColor = getColors('lago blue');
 
 %% Prepare brain models for visualization
 % Generate brain model without hippocampus/amygdala
@@ -374,4 +396,155 @@ xlabel('Time (s)');
 ylabel('Frequency (Hz)');
 title('Average TFR (dB)');
 colorbar;                              
-colormap parula;                      
+colormap parula;                 
+
+%% check hemispheric differences for gamma, Supplemental Fig 8
+
+set(0, 'DefaultFigureRenderer', 'painters')
+%format data for plotting functions
+datIn = pooledData.gammaRho(sigChannelsIDX);
+datIn(datIn == 0) = nan;
+dataToPlot = groupData(datIn,idx);
+
+%for violinplot function
+colors = [aColor;mColor;pColor];
+%generate offset of violin plots
+offset = 0.05;
+groups = [1-offset,1+offset,2-offset,2+offset,3-offset,3+offset];
+medianLine = [];
+
+left = [1,3,5];
+right = [2,4,6];
+
+figure('position',[72   805   935   479])
+
+leftRightViolin(dataToPlot,groups,left,right,colors,offset)
+
+xticklabels({'ACC','MCC','PCC'})
+set(gca,'linewidth',.75, 'FontSize',24,'FontName','Helvetica')
+ylabel('Gamma Response (Rho)')
+box off
+saveas(gcf,[saveDir '_gammaViolin_.svg'])
+
+% run statistics on groups and display
+a = dataToPlot(:,1:2);
+m = dataToPlot(:,3:4);
+p = dataToPlot(:,5:6);
+
+am = ranksum(a(:),m(:))
+ap = ranksum(a(:),p(:))
+mp = ranksum(m(:),p(:))
+
+aa = ranksum(dataToPlot(:,1),dataToPlot(:,2))
+mm = ranksum(dataToPlot(:,3),dataToPlot(:,4))
+pp = ranksum(dataToPlot(:,5),dataToPlot(:,6))
+
+%% compare gamma statistics between regions
+
+%% First, extract necessary data to feed into the figure generating engine, similar to the network figure in figure 2
+
+%Reorganize table by merging somatosensory and motor regions, and remove
+%any class regions "Other"
+figureRegions = regionSort;
+merge = contains(figureRegions.Class,{'Motor Cortex','Somatosensory Cortex'});
+mergeTo = 'Somato-Motor Cortex';
+
+remove = contains(figureRegions.Class,{'Occipital Lobe', 'Other', 'White Matter', 'White matter'});
+
+figureRegions.Class(merge) = {mergeTo};
+figureRegions(remove,:) = [];
+
+%reorder and sort regions by region CLass
+classOrder = {'Orbitofrontal cortex','Frontal Lobe','Cingulate cortex','Somato-Motor Cortex','Operculum','Temporal Lobe','Hippocampus','Amygdala','Insula','Parietal Lobe','Occipital Lobe','Thalamus'};
+
+[~,idx] = ismember(figureRegions.Class,classOrder);
+[~,sortIDX] = sort(idx);
+figureRegions = figureRegions(sortIDX,:);
+figureRegions = removevars(figureRegions,'Region');
+
+[~,groupLabels] = ismember(figureRegions.Class,classOrder);
+
+% Using the y coordinates of electrodes with labels, organize the table
+% region names within each group to be from anterior to posterior
+groupLabelsUnique = unique(groupLabels);
+
+% iterate through each group, identify all the regions, obtain an average y
+% value for each, reorder based on anterior to posterior of each group
+for g = 1:length(groupLabelsUnique)
+initDistances = [];
+
+curRegionsIDX = groupLabels == groupLabelsUnique(g);
+curRegions = figureRegions.Name(curRegionsIDX);
+
+%initialize and store temporary average position of electrodes regions within the class label, 
+
+tempDistances = [];
+
+for r = 1:length(curRegions)
+regionsIDX = contains([pooledData.electrodeRegionLabel{:}],curRegions{r});
+tempDistances(r) = mean(pooledData.electrodeCoordinates(2,regionsIDX));
+end
+
+%oranize and resort by rank, then amend table as needed 
+[~,idx] = sort(tempDistances,'descend');
+curRegions = curRegions(idx);
+figureRegions.Name(curRegionsIDX) = curRegions;
+end
+
+%% remove any table entries where the region does not exist in the dataset.
+close all
+regions = unique([pooledData.electrodeRegionLabel{:}]);
+
+%since data labels contain more characters than table labels, we will have
+%to loop through and use the contains function for each individual element.
+%Also, do not include the cingul-Marginalis as part of this divergent
+%connectivity figure since it is not one of the regions of interest.
+count = 1;
+temp = [];
+for i = 1:length(figureRegions.Name)
+    if ~any(contains(regions,figureRegions.Name(i))) || strcmp(figureRegions.Name(i), 'S_cingul-Marginalis')
+        temp(count) = i;
+        count = count+1;
+    end
+end
+
+figureRegions(temp,:) = [];
+
+% here, generate a set of tables that contain the information required for generating inner and outter circles
+%figureRegions contains the necessary region names and region classes, the
+%function that generates the circles will double all of the labels 
+outerTable = figureRegions(~ismember(figureRegions.Name,cingulateNamesSimple),:);
+innerTable = figureRegions(contains(figureRegions.Name,cingulateNamesSimple),:);
+
+%change class labels for innerTable for stimulation conditions
+innerTable.Class = {'ACC';'MCC';'MCC';'PCC';'PCC'};
+
+%% create wiring figure
+%generate necessary geometric resources to create the wiring figure
+[outer, inner] = generateCircleNetworkPoints(15,3, 4, 12, outerTable, innerTable); %use a full circle diagram, then prune it to a half circle in the next few lines to ensure that indexing is consistent)
+
+%%
+removeIDXOuter = outer.rHemisphere == 0;
+removeIDXInner = inner.rHemisphere == 0;
+outer(removeIDXOuter,:) = [];
+inner(removeIDXInner,:) = [];
+inner = flip(inner);
+
+%
+[a,b,c] = generateNetworkPlotHalfCircle(outer, inner, pooledData, 'gammaRho', significant,'ipsi','jitter','jitterMagnitude',.02); %'offset',  'offsetStep', 0.005);
+saveas(a,[saveDir 'ipsiLateralizationPlot.svg'])
+saveas(b,[saveDir 'ipsiLateralizationPlotLegendBlue.svg'])
+saveas(c,[saveDir 'ipsiLateralizationPlotLegendRed.svg'])
+
+%
+[a,b,c] = generateNetworkPlotHalfCircle(outer, inner, pooledData, 'gammaRho', significant,'contra','jitter','jitterMagnitude',.02); %'offset',  'offsetStep', 0.005);
+saveas(a,[saveDir 'contraLateralizationPlot.svg'])
+saveas(b,[saveDir 'contraLateralizationPlotLegendBlue.svg'])
+saveas(c,[saveDir 'contraLateralizationPlotLegendRed.svg'])
+
+%% generate statistical comparisons between major region groups, based on the figureRegions classes
+
+lateralizationTableGamma = getHemiStats(outer, inner,pooledData, 'gammaRho', significant);
+T = struct2table(lateralizationTableGamma);
+
+writetable(T, [saveDir 'lateralizationTableGamma.xlsx'])

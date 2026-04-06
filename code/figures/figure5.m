@@ -434,3 +434,56 @@ xline(timeVector(changePointMag(1)),'Color',getColors('modern orange'))
 xline(timeVector(changePointMag2(2)),'Color', getColors('modern orange'))
 xlim([-400 400])
 saveas(gcf,[saveDir '_CCEPDurationDetection2.svg'])
+
+%%
+
+%% Correlation between response latency and electrode distance
+
+% Calculate Euclidean distance between stimulating and recording electrodes
+numChannels = size(pooledData.stimulatedChannelCoord, 2);
+electrodeDistances = zeros(1, numChannels);
+
+for ch = 1:numChannels
+    stimCoord = pooledData.stimulatedChannelCoord(:, ch);
+    recordCoord = pooledData.electrodeCoordinates(:, ch);
+    
+    % Calculate Euclidean distance
+    electrodeDistances(ch) = sqrt(sum((stimCoord - recordCoord).^2));
+end
+
+% Filter for significant responses (same criteria as used throughout the script)
+validIdx = significant & ~isnan(pooledData.responseLatency) & ~isnan(electrodeDistances);
+
+% Calculate correlation between distance and response latency
+[correlationCoeff, pValue] = corr(electrodeDistances(validIdx)', pooledData.responseLatency(validIdx)', 'Type', 'Spearman');
+
+% Display results
+fprintf('Correlation between electrode distance and response latency:\n');
+fprintf('Correlation coefficient: r = %.4f\n', correlationCoeff);
+fprintf('P-value: p = %.6f\n', pValue);
+
+% Create scatter plot
+figure('Position', [100, 100, 800, 600]);
+scatter(electrodeDistances(validIdx), pooledData.responseLatency(validIdx), 50, 'filled');
+xlabel('Distance between electrodes (mm)');
+ylabel('Response latency (ms)');
+grid on;
+box off;
+
+% Add trend line
+hold on;
+p = polyfit(electrodeDistances(validIdx), pooledData.responseLatency(validIdx), 1);
+xFit = linspace(min(electrodeDistances(validIdx)), max(electrodeDistances(validIdx)), 100);
+yFit = polyval(p, xFit);
+plot(xFit, yFit, 'r-', 'LineWidth', 2);
+set(gca, 'Fontsize', 24)
+% Save the figure
+saveas(gcf, [saveDir '_ElectrodeDistanceVsLatency.svg']);
+
+saveResults.distanceLatencyCorrelation = correlationCoeff;
+saveResults.distanceLatencyPValue = pValue;
+
+% Log the results
+appendLog('Figure 5: Distance-Latency Analysis', 'Correlation between electrode distance and response latency', saveResults);
+
+%%
