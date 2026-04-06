@@ -1,8 +1,12 @@
 clear
 addpath(genpath(cd))
 
-% Specify directories
-dataDirectory = 'data/raw';
+% Load directory configuration written by preflight.m
+if ~isfile('config.mat')
+    error('config.mat not found. Run preflight.m before running the pipeline.');
+end
+load('config.mat', 'config');
+dataDirectory = config.rawDirectory;
 saveDirectory = 'data/preprocessed/';
 saveHilbert   = 'data/hilbert/';
 mkdir(saveDirectory);

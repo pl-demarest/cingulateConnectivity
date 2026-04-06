@@ -22,7 +22,7 @@ for dat = 1:length(dataFiles)
     
 if ~isfile(saveCoherenceFile)
 
-    load(dataFiles{dat},'spesSmallLaplace','samplingRate');
+    load([dataDirectory dataFiles{dat}],'spesSmallLaplace','samplingRate');
     
     runAnalysis = spesSmallLaplace;
     baselineWindow = 1:.85*samplingRate;

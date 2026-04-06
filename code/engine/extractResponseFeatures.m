@@ -20,7 +20,7 @@ for dat = 1:length(dataFiles)
 
 if ~isfile(saveFile)
 
-    data = load(dataFiles{dat});
+    data = load([dataDirectory dataFiles{dat}]);
 
     toExtract = data.spesSmallLaplaceZScore;
     lowPass = data.lowPassSPESZScore;

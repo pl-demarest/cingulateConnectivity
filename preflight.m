@@ -210,6 +210,20 @@ save('config.mat', 'config');
 fprintf('\n');
 fprintf('  config.mat updated.\n');
 
+% Add PEABrain to path for this session if configured
+if ~isempty(config.peaBrainPath) && isfolder(config.peaBrainPath)
+    addpath(genpath(config.peaBrainPath));
+    fprintf('  PEABrain added to MATLAB path (this session).\n');
+    fprintf('  NOTE: Run setupFigurePaths at the start of any new figure session.\n');
+elseif ~isempty(config.peaBrainPath)
+    fprintf('  [WARN] PEABrain path set but folder not found: %s\n', config.peaBrainPath);
+    fprintf('         3D brain figures will fail. Re-run preflight to update the path.\n');
+else
+    fprintf('  [NOTE] PEABrain path not set.\n');
+    fprintf('         Figures 2, 3, 5, 6, suppFig1, and supplementals require PEABrain.\n');
+    fprintf('         Re-run preflight to configure the PEABrain path.\n');
+end
+
 fprintf('\n');
 fprintf('  ---------------------------------------------------------------\n');
 fprintf('  Preflight Report\n');
@@ -229,7 +243,8 @@ if totalFails == 0
         fprintf('    - Review any [WARN] items above (especially missing channelInspection.mat)\n');
         fprintf('    - If channelInspection.mat is missing: run code/channelInspectionScript.m\n');
         fprintf('      for each subject, then re-run preflight to confirm\n');
-        fprintf('    - When all subjects are ready: run runScripts.m\n');
+        fprintf('    - When all subjects are ready: run main.m\n');
+        fprintf('    - Before generating figures in a new session: run setupFigurePaths\n');
     elseif strcmp(modeStr, '2')
         fprintf('    - Your preprocessed data is valid\n');
         fprintf('    - Run the pipeline starting from extractCoherence.m:\n');

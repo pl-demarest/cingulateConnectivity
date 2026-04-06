@@ -12,7 +12,7 @@ Type      = 'bandpass';
 [sos,g] = tf2sos(b0_A,a0_A);
 
 
-fvtool(b0_A, a0_A)
+%fvtool(b0_A, a0_A)
 
 for channel = 1:size(signal,1)
     bandPassedData(channel,:) = filtfilt(sos,g,signal(channel,:));

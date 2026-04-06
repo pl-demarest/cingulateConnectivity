@@ -1,6 +1,6 @@
 function [RMSOut] = getRMS(signal, baselineWindow, taskWindow)
 
-RMSOut = nans(size(signal,1),size(signal,3));
+RMSOut = nan(size(signal,1),size(signal,3));
 
 for ch = 1:size(signal,1)
     for trial = 1:size(signal,3)
