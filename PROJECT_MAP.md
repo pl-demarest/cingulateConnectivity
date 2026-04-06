@@ -419,6 +419,7 @@ Each field is ch×time×trial complex-valued:
 | `/code/util/eeglab2022.0` | Vendored EEGLAB 2022.0 |
 | `/code/util/tools` | BCI2000 tooling (provides `load_bcidat`) |
 | `/figures` | Exported figure outputs written by code/figures/ scripts |
+| `/manuscript` | Manuscript Word/PDF/PPTX and submission packages (local only) |
 
 **Tracked figure assets:** `code/figures/figures/main/` — SVG/PNG panel dependencies committed to git (figure2, figure5 have committed SVG/PNG subpanels).
 
@@ -447,6 +448,8 @@ Each field is ch×time×trial complex-valued:
 ---
 
 ## Manuscript
+
+Present on a full checkout of this machine’s working copy but **not in git** (see `.gitignore`). Layout for reference:
 
 | Folder | Contents |
 |--------|----------|
