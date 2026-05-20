@@ -13,3 +13,6 @@ CLAUDE.md
 
 # Manuscript and submission assets (local only)
 /manuscript
+
+# Preflight artifact (regenerated on every preflight run)
+preflight_report.txt

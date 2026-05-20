@@ -5,7 +5,7 @@ function results = pf_checkEnvironment()
 %
 %   Returns a struct array of results (see pf_report for schema).
 %   Checks performed:
-%     - MATLAB version >= R2020b (9.9)
+%     - MATLAB version >= R2021b (9.11)
 %     - Signal Processing Toolbox installed
 %     - Statistics and Machine Learning Toolbox installed
 %     - load_bcidat function available on the MATLAB path
@@ -20,11 +20,11 @@ fprintf('  Checking MATLAB environment...\n');
 verStr = version;
 verNum = str2double(regexp(verStr, '^\d+\.\d+', 'match', 'once'));
 checkName = 'MATLAB version';
-if verNum >= 9.9
+if verNum >= 9.11
     results(end+1) = mkEntry('', checkName, 'PASS', verStr);
 else
     results(end+1) = mkEntry('', checkName, 'WARN', ...
-        sprintf('%s detected; >= R2020b (9.9) recommended', verStr));
+        sprintf('%s detected; >= R2021b (9.11) recommended', verStr));
 end
 
 % -------------------------------------------------------------------------
@@ -54,13 +54,18 @@ end
 % -------------------------------------------------------------------------
 % load_bcidat on path
 % -------------------------------------------------------------------------
+% load_bcidat is distributed as a MEX file (.mexmaci64, .mexmaca64, .mexa64,
+% .mexw64). The previous `exist(...) == 2` check matched only .m files and
+% produced a false-negative when BCI2000 was correctly installed.
+% `which` returns the resolved path for any callable form (MEX, .m, P-code).
 checkName = 'load_bcidat on path';
-if exist('load_bcidat', 'file') == 2
-    loc = which('load_bcidat');
+loc = which('load_bcidat');
+if ~isempty(loc)
     results(end+1) = mkEntry('', checkName, 'PASS', loc);
 else
     results(end+1) = mkEntry('', checkName, 'FAIL', ...
-        ['Not found. Ensure addpath(genpath(cd)) has been run from repo root. ' ...
+        ['Not found. Ensure addpath(genpath(cd)) has been run from repo root ' ...
+         'and that BCI2000 tools are installed at code/util/tools/. ' ...
          'load_bcidat is required to read BCI2000 .dat files in preprocessData.']);
 end
 

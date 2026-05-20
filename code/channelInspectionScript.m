@@ -101,6 +101,14 @@ else
     VERA = veraData;
 end
 
+% Normalize electrodeLabels to a cell array of char vectors. VERA in the wild
+% stores this field either as a cell array (older VERA outputs) or as a
+% string array (newer outputs). All downstream %s formatting in this script
+% assumes the cell form, so we coerce once here.
+if isfield(VERA, 'electrodeLabels') && isstring(VERA.electrodeLabels)
+    VERA.electrodeLabels = cellstr(VERA.electrodeLabels);
+end
+
 fprintf('  BCI2000: %d channels\n', length(bciChannelNames));
 fprintf('  VERA:    %d electrodes\n', length(VERA.electrodeLabels));
 

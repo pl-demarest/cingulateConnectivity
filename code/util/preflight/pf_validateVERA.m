@@ -81,7 +81,19 @@ if isempty(vnames)
     results(end+1) = mkEntry(subjectID, 'VERA struct content', 'FAIL', 'File loaded but is empty');
     return
 end
-VERA = V.(vnames{1});
+
+% Two VERA save formats exist in the wild:
+%   Format A — save('file.mat', 'cortex'): load returns V.cortex containing the struct.
+%   Format B — save('file.mat', '-struct', 'cortex'): load returns V with cortex's
+%              fields at the top level, so V itself is the struct.
+% Detect by checking whether any of the required VERA fields are already at
+% the top level of V; if yes, V IS the struct; otherwise drill one level in.
+veraTopLevelMarkers = {'electrodeLabels', 'Electrodes', 'electrodeNames', 'tala', 'SecondaryLabel'};
+if any(isfield(V, veraTopLevelMarkers))
+    VERA = V;
+else
+    VERA = V.(vnames{1});
+end
 
 % Required top-level fields
 requiredFields = {'electrodeLabels', 'electrodeNames', 'SecondaryLabel', ...
